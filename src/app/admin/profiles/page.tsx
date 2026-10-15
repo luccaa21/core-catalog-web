@@ -1,6 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getToken, isAuthenticated } from "@/app/login/auth_service";
+
+const API = "http://localhost:3001";
 
 type User = { id: number; name: string; email: string };
 
@@ -8,15 +12,16 @@ type Profile = {
   id: number;
   userId: number;
   fullName: string;
-  birthDate: string | null; // formato "YYYY-MM-DD"
+  birthDate: string | null; // vem como ISO: "2003-05-10T00:00:00.000Z"
   avatarUrl: string | null;
+  user: { name: string; email: string };
 };
 
 type FormData = {
   id: number | null;
   userId: string;
   fullName: string;
-  birthDate: string;
+  birthDate: string; // "YYYY-MM-DD" (input type="date")
   avatarUrl: string;
 };
 
@@ -28,34 +33,13 @@ const EMPTY_FORM: FormData = {
   avatarUrl: "",
 };
 
-// Dados mockados, só para visualização
-const MOCK_USERS: User[] = [
-  { id: 1, name: "Lucca Conto", email: "lucca@exemplo.com" },
-  { id: 2, name: "Maria Silva", email: "maria@exemplo.com" },
-  { id: 3, name: "João Souza", email: "joao@exemplo.com" },
-];
+function authHeaders(): Record<string, string> {
+  return { Authorization: `Bearer ${getToken() ?? ""}` };
+}
 
-const MOCK_PROFILES: Profile[] = [
-  {
-    id: 1,
-    userId: 1,
-    fullName: "Lucca Conto",
-    birthDate: "2003-05-10",
-    avatarUrl: null,
-  },
-  {
-    id: 2,
-    userId: 2,
-    fullName: "Maria Silva",
-    birthDate: "1998-11-22",
-    avatarUrl: null,
-  },
-];
-
-// Evita o problema de fuso: "1990-01-15" virando "14/01" no Brasil
 function formatDate(iso: string | null) {
   if (!iso) return "—";
-  const [year, month, day] = iso.split("-");
+  const [year, month, day] = iso.slice(0, 10).split("-");
   return `${day}/${month}/${year}`;
 }
 
@@ -93,26 +77,43 @@ function Avatar({ name, url }: { name: string; url: string | null }) {
 }
 
 export default function ProfilesPage() {
-  const [profiles, setProfiles] = useState<Profile[]>(MOCK_PROFILES);
+  const router = useRouter();
+
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
+  const [error, setError] = useState("");
 
   const isEditing = form.id !== null;
 
-  // Um usuário só pode ter um perfil (userId é único).
-  // Ao editar, o usuário do próprio perfil continua disponível.
-  const usersWithoutProfile = MOCK_USERS.filter(
+  // Um usuário só pode ter um perfil. Ao editar, o usuário do próprio perfil continua na lista.
+  const usersWithoutProfile = users.filter(
     (user) =>
       !profiles.some((p) => p.userId === user.id) ||
       (isEditing && profiles.find((p) => p.id === form.id)?.userId === user.id)
   );
 
-  function getUserName(userId: number) {
-    return MOCK_USERS.find((u) => u.id === userId)?.name ?? "Usuário desconhecido";
+  async function load() {
+    try {
+      const [profilesRes, usersRes] = await Promise.all([
+        fetch(`${API}/profiles`, { headers: authHeaders() }),
+        fetch(`${API}/users`, { headers: authHeaders() }),
+      ]);
+      if (!profilesRes.ok || !usersRes.ok) throw new Error();
+      setProfiles(await profilesRes.json());
+      setUsers(await usersRes.json());
+    } catch {
+      setError("Não foi possível carregar os dados. Verifique a API e o login.");
+    }
   }
 
-  function getUserEmail(userId: number) {
-    return MOCK_USERS.find((u) => u.id === userId)?.email ?? "";
-  }
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.replace("/login");
+      return;
+    }
+    void load();
+  }, []);
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -121,37 +122,41 @@ export default function ProfilesPage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError("");
 
-    if (isEditing) {
-      setProfiles((prev) =>
-        prev.map((p) =>
-          p.id === form.id
-            ? {
-                ...p,
-                fullName: form.fullName,
-                birthDate: form.birthDate || null,
-                avatarUrl: form.avatarUrl || null,
-              }
-            : p
-        )
-      );
-    } else {
-      const newId = Math.max(0, ...profiles.map((p) => p.id)) + 1;
-      setProfiles((prev) => [
-        ...prev,
-        {
-          id: newId,
-          userId: Number(form.userId),
-          fullName: form.fullName,
-          birthDate: form.birthDate || null,
-          avatarUrl: form.avatarUrl || null,
-        },
-      ]);
+    // Campos vazios não são enviados (undefined some no JSON)
+    const fields = {
+      fullName: form.fullName,
+      birthDate: form.birthDate || undefined,
+      avatarUrl: form.avatarUrl || undefined,
+    };
+
+    const url = isEditing ? `${API}/profiles/${form.id}` : `${API}/profiles`;
+    const body = isEditing ? fields : { userId: Number(form.userId), ...fields };
+
+    try {
+      const response = await fetch(url, {
+        method: isEditing ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        const msg = Array.isArray(data?.message)
+          ? data.message.join(", ")
+          : data?.message;
+        setError(String(msg ?? "Erro ao salvar o perfil."));
+        return;
+      }
+
+      setForm(EMPTY_FORM);
+      await load();
+    } catch {
+      setError("Erro de conexão ao salvar.");
     }
-
-    setForm(EMPTY_FORM);
   }
 
   function handleEdit(profile: Profile) {
@@ -159,28 +164,41 @@ export default function ProfilesPage() {
       id: profile.id,
       userId: String(profile.userId),
       fullName: profile.fullName,
-      birthDate: profile.birthDate ?? "",
+      birthDate: profile.birthDate ? profile.birthDate.slice(0, 10) : "",
       avatarUrl: profile.avatarUrl ?? "",
     });
   }
 
-  function handleDelete(id: number) {
+  async function handleDelete(id: number) {
     if (!confirm("Excluir este perfil?")) return;
-    setProfiles((prev) => prev.filter((p) => p.id !== id));
-    if (form.id === id) setForm(EMPTY_FORM);
+    try {
+      const response = await fetch(`${API}/profiles/${id}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      if (!response.ok) throw new Error();
+      if (form.id === id) setForm(EMPTY_FORM);
+      await load();
+    } catch {
+      setError("Não foi possível excluir o perfil.");
+    }
   }
 
   return (
     <div className="container py-5">
       <h1 className="mb-4">Perfis</h1>
 
+      {error && (
+        <div className="alert alert-danger" role="alert">
+          {error}
+        </div>
+      )}
+
       <div className="row g-4">
         {/* Formulário */}
         <div className="col-lg-4">
           <div className="card p-3">
-            <h5 className="mb-3">
-              {isEditing ? "Editar perfil" : "Novo perfil"}
-            </h5>
+            <h5 className="mb-3">{isEditing ? "Editar perfil" : "Novo perfil"}</h5>
 
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
@@ -211,6 +229,7 @@ export default function ProfilesPage() {
                   placeholder="Nome completo"
                   value={form.fullName}
                   onChange={handleChange}
+                  minLength={2}
                   required
                 />
               </div>
@@ -282,17 +301,12 @@ export default function ProfilesPage() {
                   {profiles.map((profile) => (
                     <tr key={profile.id}>
                       <td>
-                        <Avatar
-                          name={profile.fullName}
-                          url={profile.avatarUrl}
-                        />
+                        <Avatar name={profile.fullName} url={profile.avatarUrl} />
                       </td>
                       <td>{profile.fullName}</td>
                       <td>
-                        <div>{getUserName(profile.userId)}</div>
-                        <small className="text-muted">
-                          {getUserEmail(profile.userId)}
-                        </small>
+                        <div>{profile.user.name}</div>
+                        <small className="text-muted">{profile.user.email}</small>
                       </td>
                       <td>{formatDate(profile.birthDate)}</td>
                       <td className="text-end">
@@ -306,7 +320,7 @@ export default function ProfilesPage() {
                         <button
                           type="button"
                           className="btn btn-sm btn-outline-danger"
-                          onClick={() => handleDelete(profile.id)}
+                          onClick={() => void handleDelete(profile.id)}
                         >
                           Excluir
                         </button>
