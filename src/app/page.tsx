@@ -232,6 +232,9 @@ export default function CatalogPage() {
         <div className={styles.actions}>
           {authed ? (
             <>
+              <Link href="/admin" className={styles.btnSecondary}>
+                Admin
+              </Link>
               <button type="button" className={styles.btnSecondary} onClick={logout}>
                 Sair
               </button>

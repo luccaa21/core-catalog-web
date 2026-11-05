@@ -1,0 +1,251 @@
+.title {
+  margin: 0;
+  font-family: "IBM Plex Sans Condensed", sans-serif;
+  font-weight: 600;
+  font-size: 36px;
+  line-height: 40px;
+  letter-spacing: -0.5px;
+  color: var(--color-text-primary);
+}
+
+.alert {
+  margin-top: 24px;
+  padding: 12px 14px;
+  border: 1px solid #e0a3a3;
+  border-radius: 4px;
+  background: #fbeaea;
+  color: #8a1f1f;
+  font-size: 15px;
+}
+
+.columns {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  margin-top: 32px;
+}
+
+/* Formulário */
+.formCard {
+  width: 320px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  background: var(--color-bg-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+}
+
+.formTitle {
+  margin: 0;
+  font-family: "IBM Plex Sans Condensed", sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.input {
+  width: 100%;
+  height: 44px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 4px;
+  background: var(--color-bg-raised);
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--color-text-primary);
+}
+
+.input:disabled {
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+}
+
+.input:focus {
+  outline: 2px solid var(--color-brand-4);
+  outline-offset: 0;
+}
+
+.formActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btnPrimary,
+.btnSecondary {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnPrimary {
+  border: 0;
+  background: var(--color-brand);
+  color: #ffffff;
+}
+
+.btnSecondary {
+  border: 1px solid var(--color-border-strong);
+  background: none;
+  color: var(--color-text-primary);
+}
+
+.btnPrimary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Tabela */
+.table {
+  flex: 1;
+  min-width: 0;
+  background: var(--color-bg-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tableHead,
+.row {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 180px 96px 150px;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.tableHead {
+  height: 44px;
+  background: var(--color-bg-sunken);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.row {
+  min-height: 64px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border-top: 1px solid var(--color-border-subtle);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatarInitials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-bg-brand-tint);
+  color: var(--color-brand);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.fullName {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  overflow-wrap: anywhere;
+}
+
+.userName {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.userEmail {
+  display: block;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.rowActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btnEdit,
+.btnDelete {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 4px;
+  background: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnEdit {
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+
+.btnDelete {
+  border: 1px solid #b42318;
+  color: #8e1b12;
+}
+
+.empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 1100px) {
+  .columns {
+    flex-direction: column;
+  }
+
+  .formCard {
+    width: 100%;
+  }
+
+  .tableHead,
+  .row {
+    grid-template-columns: 40px minmax(0, 1fr) 150px 150px;
+  }
+
+  .tableHead > :nth-child(4),
+  .row > :nth-child(4) {
+    display: none;
+  }
+}

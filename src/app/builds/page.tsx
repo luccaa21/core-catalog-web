@@ -14,7 +14,7 @@ const plexCondensed = IBM_Plex_Sans_Condensed({
   weight: ["500", "600"],
 });
 
-const API = "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 type BuildSummaryItem = { id: number; name: string; maxBudgetCents: number };
 
@@ -25,6 +25,7 @@ const currency = new Intl.NumberFormat("pt-BR", {
 
 export default function BuildsListPage() {
   const router = useRouter();
+
   const [authed, setAuthed] = useState(false);
   const [builds, setBuilds] = useState<BuildSummaryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,17 +38,30 @@ export default function BuildsListPage() {
     }
     setAuthed(true);
 
-    fetch(`${API}/builds/mine`, {
-      headers: { Authorization: `Bearer ${getToken() ?? ""}` },
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error();
-        return r.json();
-      })
-      .then((data: BuildSummaryItem[]) => setBuilds(data))
-      .catch(() => setError("Não foi possível carregar suas builds."))
-      .finally(() => setLoading(false));
-  }, []);
+    async function load() {
+      try {
+        const response = await fetch(`${API}/builds/mine`, {
+          headers: { Authorization: `Bearer ${getToken() ?? ""}` },
+        });
+
+        // Token expirado ou inválido: limpa a sessão e volta ao login
+        if (response.status === 401) {
+          clearToken();
+          router.replace("/login?next=/builds");
+          return;
+        }
+        if (!response.ok) throw new Error();
+
+        setBuilds(await response.json());
+      } catch {
+        setError("Não foi possível carregar suas builds.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void load();
+  }, [router]);
 
   function logout() {
     clearToken();
@@ -71,11 +85,14 @@ export default function BuildsListPage() {
           </nav>
         </div>
         <div className={headerStyles.actions}>
+          <Link href="/" className={headerStyles.btnSecondary}>
+            Catálogo
+          </Link>
           <button type="button" className={headerStyles.btnSecondary} onClick={logout}>
             Sair
           </button>
-          <Link href="/" className={headerStyles.btnPrimary}>
-            Catálogo
+          <Link href="/builds/new" className={headerStyles.btnPrimary}>
+            Nova build
           </Link>
         </div>
       </header>
@@ -87,9 +104,6 @@ export default function BuildsListPage() {
               <h1 className={`${styles.title} ${plexCondensed.className}`}>Builds</h1>
               <p className={styles.subtitle}>Suas montagens e o orçamento de cada uma.</p>
             </div>
-            <Link href="/builds/new" className={headerStyles.btnPrimary}>
-              Nova build
-            </Link>
           </div>
 
           {error && (
@@ -113,7 +127,10 @@ export default function BuildsListPage() {
               className={styles.card}
               style={{ textDecoration: "none", color: "inherit" }}
             >
-              <span className={`${styles.title} ${plexCondensed.className}`} style={{ fontSize: 24, lineHeight: "32px" }}>
+              <span
+                className={`${styles.title} ${plexCondensed.className}`}
+                style={{ fontSize: 24, lineHeight: "32px" }}
+              >
                 {b.name}
               </span>
               <span className={styles.subtitle} style={{ margin: 0 }}>

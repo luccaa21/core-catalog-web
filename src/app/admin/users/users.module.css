@@ -1,0 +1,202 @@
+.title {
+  margin: 0;
+  font-family: "IBM Plex Sans Condensed", sans-serif;
+  font-weight: 600;
+  font-size: 36px;
+  line-height: 40px;
+  letter-spacing: -0.5px;
+  color: var(--color-text-primary);
+}
+
+.alert {
+  margin-top: 24px;
+  padding: 12px 14px;
+  border: 1px solid #e0a3a3;
+  border-radius: 4px;
+  background: #fbeaea;
+  color: #8a1f1f;
+  font-size: 15px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.fieldsTwo {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--color-text-primary);
+}
+
+.input {
+  width: 100%;
+  height: 44px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 4px;
+  background: var(--color-bg-raised);
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--color-text-primary);
+}
+
+.input::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.input:focus {
+  outline: 2px solid var(--color-brand-4);
+  outline-offset: 0;
+}
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-text-secondary);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btnPrimary,
+.btnSecondary {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnPrimary {
+  border: 0;
+  background: var(--color-brand);
+  color: #ffffff;
+}
+
+.btnSecondary {
+  border: 1px solid var(--color-border-strong);
+  background: none;
+  color: var(--color-text-primary);
+}
+
+.btnPrimary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Tabela */
+.table {
+  margin-top: 32px;
+  background: var(--color-bg-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tableHead,
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px 168px;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.tableHead {
+  height: 44px;
+  background: var(--color-bg-sunken);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.row {
+  min-height: 56px;
+  border-top: 1px solid var(--color-border-subtle);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.rowName {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rowEmail {
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.rowActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btnEdit,
+.btnDelete {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 4px;
+  background: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnEdit {
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+
+.btnDelete {
+  border: 1px solid #b42318;
+  color: #8e1b12;
+}
+
+.empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 1100px) {
+  .fields {
+    grid-template-columns: 1fr;
+  }
+
+  .tableHead,
+  .row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 168px;
+  }
+}
