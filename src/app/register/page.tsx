@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { IBM_Plex_Sans, IBM_Plex_Sans_Condensed } from "next/font/google";
-import { saveToken } from "../login/auth_service";
+import { getNextPath, saveToken } from "../login/auth_service";
 import styles from "../login/login.module.css";
 
 const plexSans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "600"] });
@@ -56,7 +56,7 @@ export default function RegisterPage() {
       // O register já devolve o token, então o usuário entra direto
       const data = await response.json();
       saveToken(data.access_token);
-      router.replace("/admin/users");
+      router.replace(getNextPath());
     } catch {
       setError("Erro de conexão. Verifique se a API está rodando.");
     } finally {
