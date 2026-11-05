@@ -12,7 +12,7 @@ const plexCondensed = IBM_Plex_Sans_Condensed({
   weight: ["500", "600"],
 });
 
-const API = "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 // Dados fixos só para a prévia visual da tela (protótipo)
 const PREVIEW_ITEMS = [

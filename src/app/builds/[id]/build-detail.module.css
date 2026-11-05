@@ -1,0 +1,289 @@
+.page {
+  --color-bg-page: #e6eaeb;
+  --color-bg-surface: #f8f9f9;
+  --color-bg-raised: #ffffff;
+  --color-bg-sunken: #dce1e3;
+  --color-border-subtle: #c3cbce;
+  --color-border-strong: #7c888e;
+  --color-text-primary: #1b2327;
+  --color-text-secondary: #566268;
+  --color-brand: #0e5c4a;
+  --color-ruler-1: #0e5c4a;
+  --color-ruler-2: #2e7d6b;
+  --color-ruler-3: #5e9e8e;
+  --color-ruler-4: #93bfb3;
+  --color-ruler-5: #b7d3cb;
+
+  min-height: 100vh;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 48px 64px 96px;
+  box-sizing: border-box;
+}
+
+/* Título */
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.titleBlock {
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: "IBM Plex Sans Condensed", sans-serif;
+  font-weight: 600;
+  font-size: 36px;
+  line-height: 40px;
+  letter-spacing: -0.5px;
+  overflow-wrap: anywhere;
+}
+
+.subtitle {
+  margin: 8px 0 0;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--color-text-secondary);
+}
+
+/* Resumo */
+.card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px;
+  background: var(--color-bg-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+}
+
+.values {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.gasto {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.gastoValue {
+  margin: 0;
+  font-family: "IBM Plex Sans Condensed", sans-serif;
+  font-weight: 500;
+  font-size: 40px;
+  line-height: 44px;
+  letter-spacing: -0.5px;
+}
+
+.gastoOf {
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--color-text-secondary);
+}
+
+.resto {
+  display: flex;
+  gap: 24px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+.overText {
+  color: #8a1f1f;
+}
+
+/* Régua */
+.ruler {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.track {
+  display: flex;
+  gap: 2px;
+  height: 20px;
+  background: var(--color-bg-sunken);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.segment {
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.scale {
+  position: relative;
+  height: 28px;
+}
+
+.mark {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 8px;
+  background: var(--color-border-strong);
+}
+
+.markLabel {
+  position: absolute;
+  top: 12px;
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+}
+
+.limit {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 28px;
+  background: #8a1f1f;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.legendPrice {
+  color: var(--color-text-secondary);
+}
+
+/* Tabela */
+.table {
+  background: var(--color-bg-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tableHead,
+.row,
+.totalRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px 72px 100px 130px 140px;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.tableHead {
+  height: 44px;
+  background: var(--color-bg-sunken);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.row {
+  min-height: 64px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.totalRow {
+  min-height: 56px;
+  background: var(--color-bg-surface);
+  border-top: 1px solid var(--color-border-subtle);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.right {
+  text-align: right;
+}
+
+.itemName {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.itemBrand {
+  display: block;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-text-secondary);
+}
+
+.chip {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--color-bg-sunken);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.subtotal {
+  text-align: right;
+  font-family: "IBM Plex Sans Condensed", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+}
+
+.empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 1100px) {
+  .content {
+    padding: 32px 24px;
+  }
+
+  .tableHead,
+  .row,
+  .totalRow {
+    grid-template-columns: minmax(0, 1fr) 100px 60px 90px;
+  }
+
+  .tableHead > :nth-child(5),
+  .tableHead > :nth-child(6),
+  .row > :nth-child(5),
+  .row > :nth-child(6),
+  .totalRow > :nth-child(5),
+  .totalRow > :nth-child(6) {
+    display: none;
+  }
+}

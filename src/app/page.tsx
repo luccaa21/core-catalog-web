@@ -4,7 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { IBM_Plex_Sans, IBM_Plex_Sans_Condensed } from "next/font/google";
-import { clearToken, isAuthenticated } from "./login/auth_service";
+import {
+  clearToken,
+  getToken,
+  isAuthenticated,
+} from "./login/auth_service";
 import styles from "./catalog.module.css";
 
 const plexSans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "600"] });
@@ -13,7 +17,7 @@ const plexCondensed = IBM_Plex_Sans_Condensed({
   weight: ["500", "600"],
 });
 
-const API = "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 type Component = {
   id: number;
@@ -50,6 +54,10 @@ function countBy<T>(items: T[], key: (item: T) => string) {
   return counts;
 }
 
+function authHeaders(): Record<string, string> {
+  return { Authorization: `Bearer ${getToken() ?? ""}` };
+}
+
 export default function CatalogPage() {
   const router = useRouter();
 
@@ -64,9 +72,16 @@ export default function CatalogPage() {
   const [sort, setSort] = useState<SortKey>("price-asc");
   const [message, setMessage] = useState("");
 
+  const [buildIdParam, setBuildIdParam] = useState<number | null>(null);
+  const [pendingComponent, setPendingComponent] = useState<Component | null>(null);
+  const [myBuilds, setMyBuilds] = useState<{ id: number; name: string }[]>([]);
+
   useEffect(() => {
     // Lê o token só no navegador, para evitar diferença entre servidor e cliente
     setAuthed(isAuthenticated());
+
+    const idFromUrl = new URLSearchParams(window.location.search).get("buildId");
+    if (idFromUrl) setBuildIdParam(Number(idFromUrl));
 
     fetch(`${API}/components`)
       .then((r) => {
@@ -146,8 +161,47 @@ export default function CatalogPage() {
     action?.();
   }
 
-  function addToBuild() {
-    setMessage("Escolha uma build para adicionar a peça. Essa etapa chega com a tela de builds.");
+  // Clique em "Adicionar": se já houver build escolhida (vinda da URL), adiciona direto.
+  // Senão, carrega as builds do usuário e mostra a lista para escolher.
+  async function addToBuild(component: Component) {
+    setError("");
+    setMessage("");
+
+    if (buildIdParam) {
+      await addItemToBuild(buildIdParam, component);
+      return;
+    }
+
+    const response = await fetch(`${API}/builds/mine`, { headers: authHeaders() });
+    if (!response.ok) {
+      setError("Não foi possível carregar suas builds.");
+      return;
+    }
+    setMyBuilds(await response.json());
+    setPendingComponent(component);
+  }
+
+  async function addItemToBuild(buildId: number, component: Component) {
+    setError("");
+    try {
+      const response = await fetch(`${API}/builds/${buildId}/items`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ componentId: component.id, quantity: 1 }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        const msg = Array.isArray(data?.message) ? data.message.join(", ") : data?.message;
+        setError(String(msg ?? "Não foi possível adicionar a peça."));
+        return;
+      }
+
+      setPendingComponent(null);
+      setMessage(`${component.name} adicionada à build.`);
+    } catch {
+      setError("Erro de conexão. Verifique se a API está rodando.");
+    }
   }
 
   function logout() {
@@ -283,6 +337,39 @@ export default function CatalogPage() {
               </div>
             </div>
 
+            {pendingComponent && (
+              <div className={styles.notice}>
+                <p style={{ margin: "0 0 8px" }}>
+                  Escolha a build para adicionar <strong>{pendingComponent.name}</strong>:
+                </p>
+                {myBuilds.length === 0 ? (
+                  <p style={{ margin: 0 }}>
+                    Você ainda não tem builds. <Link href="/builds/new">Criar build</Link>
+                  </p>
+                ) : (
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {myBuilds.map((b) => (
+                      <button
+                        key={b.id}
+                        type="button"
+                        className={styles.btnAdd}
+                        onClick={() => void addItemToBuild(b.id, pendingComponent)}
+                      >
+                        {b.name}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      className={styles.btnSecondary}
+                      onClick={() => setPendingComponent(null)}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className={styles.table}>
               <div className={styles.tableHead}>
                 <span>Peça</span>
@@ -315,7 +402,13 @@ export default function CatalogPage() {
                     <button
                       type="button"
                       className={styles.btnAdd}
-                      onClick={() => requireLogin("/", addToBuild)}
+                      onClick={() =>
+                        // Volta para esta mesma URL (com ?buildId=) depois do login
+                        requireLogin(
+                          window.location.pathname + window.location.search,
+                          () => void addToBuild(c)
+                        )
+                      }
                     >
                       Adicionar
                     </button>

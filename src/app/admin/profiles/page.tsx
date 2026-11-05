@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getToken, isAuthenticated } from "@/app/login/auth_service";
 
-const API = "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 type User = { id: number; name: string; email: string };
 
