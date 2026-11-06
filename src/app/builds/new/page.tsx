@@ -18,7 +18,7 @@ const plexCondensed = IBM_Plex_Sans_Condensed({
   weight: ["500", "600"],
 });
 
-const API = "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 type Profile = { id: number; fullName: string };
 
@@ -27,7 +27,7 @@ const currency = new Intl.NumberFormat("pt-BR", {
   currency: "BRL",
 });
 
-// Valores em centavos, como no banco
+// Marcas da escala: "R$ 2 mil", "R$ 4 mil"...
 function formatMark(cents: number) {
   const reais = cents / 100;
   if (reais === 0) return "R$ 0";
@@ -48,31 +48,30 @@ export default function NewBuildPage() {
 
   const [name, setName] = useState("");
   const [budgetCents, setBudgetCents] = useState(800000); // R$ 8.000,00
-  const [profileId, setProfileId] = useState("");
-  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [myProfile, setMyProfile] = useState<Profile | null>(null);
+  const [profileChecked, setProfileChecked] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated()) {
-      // Volta para esta tela depois do login
       router.replace("/login?next=/builds/new");
       return;
     }
     setAuthed(true);
 
-    fetch(`${API}/profiles`, { headers: authHeaders() })
-      .then((r) => {
+    // Busca só o perfil da conta logada
+    fetch(`${API}/profiles/me`, { headers: authHeaders() })
+      .then(async (r) => {
         if (!r.ok) throw new Error();
-        return r.json();
+        // Sem perfil, o backend responde corpo vazio (null)
+        const text = await r.text();
+        setMyProfile(text ? JSON.parse(text) : null);
       })
-      .then((data: Profile[]) => {
-        setProfiles(data);
-        if (data.length > 0) setProfileId(String(data[0].id));
-      })
-      .catch(() => setError("Não foi possível carregar os perfis."));
-  }, []);
+      .catch(() => setError("Não foi possível carregar seu perfil."))
+      .finally(() => setProfileChecked(true));
+  }, [router]);
 
   const marks = useMemo(
     () => [0, 25, 50, 75, 100].map((p) => ({ p, value: (budgetCents * p) / 100 })),
@@ -80,7 +79,7 @@ export default function NewBuildPage() {
   );
 
   function handleBudgetChange(value: string) {
-    // Só dígitos: os últimos dois são os centavos
+    // Só dígitos: os dois últimos são os centavos
     const digits = value.replace(/\D/g, "");
     setBudgetCents(Number(digits) || 0);
   }
@@ -94,8 +93,8 @@ export default function NewBuildPage() {
     event.preventDefault();
     setError("");
 
-    if (!profileId) {
-      setError("Selecione um perfil.");
+    if (!myProfile) {
+      setError("Crie seu perfil antes de montar uma build.");
       return;
     }
     if (budgetCents <= 0) {
@@ -105,13 +104,13 @@ export default function NewBuildPage() {
 
     setSaving(true);
     try {
+      // O perfil não é enviado: o backend usa o dono do token
       const response = await fetch(`${API}/builds`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({
           name: name.trim(),
           maxBudgetCents: budgetCents,
-          profileId: Number(profileId),
         }),
       });
 
@@ -144,9 +143,12 @@ export default function NewBuildPage() {
             <Link href="/" className={headerStyles.navLink}>
               Catálogo
             </Link>
-            <span className={`${headerStyles.navLink} ${headerStyles.navLinkStrong}`}>
+            <Link
+              href="/builds"
+              className={`${headerStyles.navLink} ${headerStyles.navLinkStrong}`}
+            >
               Builds
-            </span>
+            </Link>
           </nav>
         </div>
         <div className={headerStyles.actions}>
@@ -212,24 +214,23 @@ export default function NewBuildPage() {
                 <label className={styles.label} htmlFor="profile">
                   Perfil
                 </label>
-                <select
+                <input
                   id="profile"
                   className={styles.input}
-                  value={profileId}
-                  onChange={(e) => setProfileId(e.target.value)}
-                  disabled={profiles.length === 0}
-                  required
-                >
-                  {profiles.length === 0 && <option value="">Nenhum perfil cadastrado</option>}
-                  {profiles.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.fullName}
-                    </option>
-                  ))}
-                </select>
-                {profiles.length === 0 && (
+                  value={
+                    myProfile
+                      ? myProfile.fullName
+                      : profileChecked
+                        ? "Você ainda não tem perfil"
+                        : "Carregando..."
+                  }
+                  disabled
+                />
+                {profileChecked && !myProfile && (
                   <p className={styles.hint}>
-                    Você ainda não tem perfil. <Link href="/profile?next=/builds/new">Criar perfil</Link>
+                    <Link href="/perfil?next=/builds/new" className={styles.link}>
+                      Criar meu perfil
+                    </Link>
                   </p>
                 )}
               </div>
@@ -238,7 +239,7 @@ export default function NewBuildPage() {
                 <button
                   type="submit"
                   className={styles.btnPrimary}
-                  disabled={saving || profiles.length === 0}
+                  disabled={saving || !myProfile}
                 >
                   {saving ? "Criando..." : "Criar build"}
                 </button>
