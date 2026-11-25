@@ -1,0 +1,30 @@
+.scale {
+  position: relative;
+  width: 100%;
+  height: 28px;
+}
+
+.mark {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 8px;
+  background: var(--color-border-strong);
+}
+
+.markLabel {
+  position: absolute;
+  top: 12px;
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+}
+
+.limit {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 28px;
+  background: #8a1f1f;
+}

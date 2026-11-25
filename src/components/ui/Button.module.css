@@ -1,0 +1,56 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Tamanhos */
+.md {
+  height: 40px;
+  padding: 0 16px;
+}
+
+.sm {
+  height: 32px;
+  padding: 0 12px;
+}
+
+.lg {
+  height: 52px;
+  font-size: 17px;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+/* Variantes */
+.primary {
+  border: 0;
+  background: var(--color-brand);
+  color: #ffffff;
+}
+
+.secondary {
+  border: 1px solid var(--color-border-strong);
+  background: none;
+  color: var(--color-text-primary);
+}
+
+.danger {
+  border: 1px solid #b42318;
+  background: none;
+  color: #8e1b12;
+}

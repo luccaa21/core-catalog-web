@@ -1,0 +1,33 @@
+.cols {
+  --cols: minmax(0, 1fr) 140px 72px 100px 130px 140px;
+  --row-min-height: 64px;
+}
+
+.right {
+  text-align: right;
+}
+
+.subtotal {
+  text-align: right;
+  font-family: "IBM Plex Sans Condensed", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+}
+
+.totalRow {
+  --row-min-height: 56px;
+  background: var(--color-bg-surface);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+@media (max-width: 1100px) {
+  .cols {
+    --cols: minmax(0, 1fr) 100px 60px 90px;
+  }
+
+  .cols > :nth-child(5),
+  .cols > :nth-child(6) {
+    display: none;
+  }
+}

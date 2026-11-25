@@ -1,0 +1,27 @@
+.card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px;
+  background: var(--color-bg-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.name {
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: -0.5px;
+  overflow-wrap: anywhere;
+}
+
+.budget {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--color-text-secondary);
+}

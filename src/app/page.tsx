@@ -1,62 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { IBM_Plex_Sans, IBM_Plex_Sans_Condensed } from "next/font/google";
-import {
-  clearToken,
-  getToken,
-  isAuthenticated,
-} from "./login/auth_service";
+import { BuildPicker } from "@/components/catalog/BuildPicker";
+import { CatalogSidebar } from "@/components/catalog/CatalogSidebar";
+import { CatalogToolbar } from "@/components/catalog/CatalogToolbar";
+import { ComponentsTable } from "@/components/catalog/ComponentsTable";
+import { AppHeader } from "@/components/layout/AppHeader";
+import { PageContent } from "@/components/layout/PageContent";
+import { PageShell } from "@/components/layout/PageShell";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { PageHeading } from "@/components/ui/PageHeading";
+import { TableFooter } from "@/components/ui/Table";
+import { useCatalogFilters } from "@/hooks/useCatalogFilters";
+import { apiFetch, readApiError } from "@/lib/api";
+import { clearToken, isAuthenticated } from "@/lib/auth";
+import type { BuildSummaryItem, Component } from "@/lib/types";
 import styles from "./catalog.module.css";
-
-const plexSans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "600"] });
-const plexCondensed = IBM_Plex_Sans_Condensed({
-  subsets: ["latin"],
-  weight: ["500", "600"],
-});
-
-const API = process.env.NEXT_PUBLIC_API_URL;
-
-type Component = {
-  id: number;
-  name: string;
-  category: string;
-  priceCents: number;
-  powerWatts: number;
-  manufacturer: { name: string };
-};
-
-type SortKey = "price-asc" | "price-desc" | "watts-asc" | "name";
-
-const SORT_LABELS: Record<SortKey, string> = {
-  "price-asc": "Menor preço",
-  "price-desc": "Maior preço",
-  "watts-asc": "Menor consumo",
-  name: "Nome",
-};
-
-// Ordem das categorias como no protótipo; categorias extras vão para o fim
-const CATEGORY_ORDER = ["CPU", "GPU", "Placa-mãe", "RAM", "Armazenamento", "Fonte"];
-
-const currency = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
-
-function countBy<T>(items: T[], key: (item: T) => string) {
-  const counts = new Map<string, number>();
-  for (const item of items) {
-    const k = key(item);
-    counts.set(k, (counts.get(k) ?? 0) + 1);
-  }
-  return counts;
-}
-
-function authHeaders(): Record<string, string> {
-  return { Authorization: `Bearer ${getToken() ?? ""}` };
-}
 
 export default function CatalogPage() {
   const router = useRouter();
@@ -65,16 +26,13 @@ export default function CatalogPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [authed, setAuthed] = useState(false);
-
-  const [category, setCategory] = useState("");
-  const [selectedManufacturers, setSelectedManufacturers] = useState<string[]>([]);
-  const [search, setSearch] = useState("");
-  const [sort, setSort] = useState<SortKey>("price-asc");
   const [message, setMessage] = useState("");
 
   const [buildIdParam, setBuildIdParam] = useState<number | null>(null);
   const [pendingComponent, setPendingComponent] = useState<Component | null>(null);
-  const [myBuilds, setMyBuilds] = useState<{ id: number; name: string }[]>([]);
+  const [myBuilds, setMyBuilds] = useState<Pick<BuildSummaryItem, "id" | "name">[]>([]);
+
+  const filters = useCatalogFilters(components);
 
   useEffect(() => {
     // Lê o token só no navegador, para evitar diferença entre servidor e cliente
@@ -83,7 +41,7 @@ export default function CatalogPage() {
     const idFromUrl = new URLSearchParams(window.location.search).get("buildId");
     if (idFromUrl) setBuildIdParam(Number(idFromUrl));
 
-    fetch(`${API}/components`)
+    apiFetch("/components")
       .then((r) => {
         if (!r.ok) throw new Error();
         return r.json();
@@ -94,63 +52,6 @@ export default function CatalogPage() {
       )
       .finally(() => setLoading(false));
   }, []);
-
-  // Categorias com contagem, na ordem do protótipo
-  const categories = useMemo(() => {
-    const counts = countBy(components, (c) => c.category);
-    return [...counts.keys()]
-      .sort((a, b) => {
-        const ia = CATEGORY_ORDER.indexOf(a);
-        const ib = CATEGORY_ORDER.indexOf(b);
-        return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib) || a.localeCompare(b);
-      })
-      .map((name) => ({ name, count: counts.get(name) ?? 0 }));
-  }, [components]);
-
-  // Fabricantes com contagem, em ordem alfabética
-  const manufacturers = useMemo(() => {
-    const counts = countBy(components, (c) => c.manufacturer.name);
-    return [...counts.keys()]
-      .sort((a, b) => a.localeCompare(b, "pt-BR"))
-      .map((name) => ({ name, count: counts.get(name) ?? 0 }));
-  }, [components]);
-
-  const visible = useMemo(() => {
-    const term = search.trim().toLowerCase();
-
-    const filtered = components.filter(
-      (c) =>
-        (!category || c.category === category) &&
-        (selectedManufacturers.length === 0 ||
-          selectedManufacturers.includes(c.manufacturer.name)) &&
-        (!term ||
-          c.name.toLowerCase().includes(term) ||
-          c.manufacturer.name.toLowerCase().includes(term))
-    );
-
-    const sorted = [...filtered];
-    switch (sort) {
-      case "price-asc":
-        sorted.sort((a, b) => a.priceCents - b.priceCents);
-        break;
-      case "price-desc":
-        sorted.sort((a, b) => b.priceCents - a.priceCents);
-        break;
-      case "watts-asc":
-        sorted.sort((a, b) => a.powerWatts - b.powerWatts);
-        break;
-      case "name":
-        sorted.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
-        break;
-    }
-    return sorted;
-  }, [components, category, selectedManufacturers, search, sort]);
-
-  function toggleManufacturer(name: string) {
-    setSelectedManufacturers((prev) =>
-      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
-    );
-  }
 
   // Ações que exigem login: se não estiver logado, manda para /login e volta depois
   function requireLogin(destination: string, action?: () => void) {
@@ -172,7 +73,7 @@ export default function CatalogPage() {
       return;
     }
 
-    const response = await fetch(`${API}/builds/mine`, { headers: authHeaders() });
+    const response = await apiFetch("/builds/mine", { auth: true });
     if (!response.ok) {
       setError("Não foi possível carregar suas builds.");
       return;
@@ -184,16 +85,14 @@ export default function CatalogPage() {
   async function addItemToBuild(buildId: number, component: Component) {
     setError("");
     try {
-      const response = await fetch(`${API}/builds/${buildId}/items`, {
+      const response = await apiFetch(`/builds/${buildId}/items`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify({ componentId: component.id, quantity: 1 }),
+        auth: true,
+        body: { componentId: component.id, quantity: 1 },
       });
 
       if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        const msg = Array.isArray(data?.message) ? data.message.join(", ") : data?.message;
-        setError(String(msg ?? "Não foi possível adicionar a peça."));
+        setError(await readApiError(response, "Não foi possível adicionar a peça."));
         return;
       }
 
@@ -211,223 +110,95 @@ export default function CatalogPage() {
   }
 
   return (
-    <div className={`${styles.page} ${plexSans.className}`}>
-      <header className={styles.header}>
-        <div className={styles.headerLeft}>
-          <Link href="/" className={`${styles.brand} ${plexCondensed.className}`}>
-            Core Catalog
-          </Link>
-          <nav className={styles.nav}>
-            <span>Catálogo</span>
-            <button
-              type="button"
-              className={`${styles.navLink} ${styles.navLinkStrong}`}
-              onClick={() => requireLogin("/builds", () => router.push("/builds"))}
-            >
-              Builds
-            </button>
-          </nav>
-        </div>
-
-        <div className={styles.actions}>
-          {authed ? (
-            <>
-              <Link href="/admin" className={styles.btnSecondary}>
-                Admin
-              </Link>
-              <button type="button" className={styles.btnSecondary} onClick={logout}>
-                Sair
-              </button>
-              <Link href="/" className={styles.btnPrimary}>
-                Catálogo
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link href="/login?next=/" className={styles.btnSecondary}>
-                Entrar
-              </Link>
-              <Link href="/register" className={styles.btnPrimary}>
-                Criar conta
-              </Link>
-            </>
-          )}
-        </div>
-      </header>
-
-      <main className={styles.content}>
-        <div>
-          <h1 className={`${styles.title} ${plexCondensed.className}`}>
-            Catálogo de peças
-          </h1>
-          <p className={styles.subtitle}>
-            Compare preço e consumo antes de montar sua build.
-          </p>
-        </div>
-
-        {error && (
-          <div className={styles.alert} role="alert">
-            {error}
-          </div>
+    <PageShell>
+      <AppHeader
+        nav={[
+          { label: "Catálogo" },
+          {
+            label: "Builds",
+            strong: true,
+            onClick: () => requireLogin("/builds", () => router.push("/builds")),
+          },
+        ]}
+      >
+        {authed ? (
+          <>
+            <Button href="/admin" variant="secondary">
+              Admin
+            </Button>
+            <Button variant="secondary" onClick={logout}>
+              Sair
+            </Button>
+            <Button href="/">Catálogo</Button>
+          </>
+        ) : (
+          <>
+            <Button href="/login?next=/" variant="secondary">
+              Entrar
+            </Button>
+            <Button href="/register">Criar conta</Button>
+          </>
         )}
-        {message && <div className={styles.notice}>{message}</div>}
+      </AppHeader>
+
+      <PageContent>
+        <PageHeading
+          title="Catálogo de peças"
+          subtitle="Compare preço e consumo antes de montar sua build."
+        />
+
+        {error && <Alert>{error}</Alert>}
+        {message && <Alert variant="notice">{message}</Alert>}
 
         <div className={styles.layout}>
-          <aside className={styles.sidebar}>
-            <div className={styles.filterGroup}>
-              <p className={styles.filterTitle}>Categoria</p>
-              <button
-                type="button"
-                className={`${styles.categoryBtn} ${category === "" ? styles.categoryActive : ""}`}
-                onClick={() => setCategory("")}
-              >
-                <span>Todas</span>
-                <span>{components.length}</span>
-              </button>
-              {categories.map((c) => (
-                <button
-                  key={c.name}
-                  type="button"
-                  className={`${styles.categoryBtn} ${category === c.name ? styles.categoryActive : ""}`}
-                  onClick={() => setCategory(c.name)}
-                >
-                  <span>{c.name}</span>
-                  <span>{c.count}</span>
-                </button>
-              ))}
-            </div>
-
-            <div className={styles.filterGroup}>
-              <p className={styles.filterTitle}>Fabricante</p>
-              {manufacturers.map((m) => (
-                <label key={m.name} className={styles.checkRow}>
-                  <input
-                    type="checkbox"
-                    checked={selectedManufacturers.includes(m.name)}
-                    onChange={() => toggleManufacturer(m.name)}
-                  />
-                  <span>{m.name}</span>
-                  <span className={styles.count}>{m.count}</span>
-                </label>
-              ))}
-            </div>
-          </aside>
+          <CatalogSidebar
+            totalCount={components.length}
+            categories={filters.categories}
+            category={filters.category}
+            onCategoryChange={filters.setCategory}
+            manufacturers={filters.manufacturers}
+            selectedManufacturers={filters.selectedManufacturers}
+            onToggleManufacturer={filters.toggleManufacturer}
+          />
 
           <section className={styles.list}>
-            <div className={styles.toolbar}>
-              <input
-                className={styles.search}
-                placeholder="Buscar peça ou fabricante"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <div className={styles.sortWrap}>
-                <label htmlFor="sort" className={styles.sortLabel}>
-                  Ordenar por
-                </label>
-                <select
-                  id="sort"
-                  className={styles.select}
-                  value={sort}
-                  onChange={(e) => setSort(e.target.value as SortKey)}
-                >
-                  {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
-                    <option key={key} value={key}>
-                      {SORT_LABELS[key]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+            <CatalogToolbar
+              search={filters.search}
+              onSearchChange={filters.setSearch}
+              sort={filters.sort}
+              onSortChange={filters.setSort}
+            />
 
             {pendingComponent && (
-              <div className={styles.notice}>
-                <p style={{ margin: "0 0 8px" }}>
-                  Escolha a build para adicionar <strong>{pendingComponent.name}</strong>:
-                </p>
-                {myBuilds.length === 0 ? (
-                  <p style={{ margin: 0 }}>
-                    Você ainda não tem builds. <Link href="/builds/new">Criar build</Link>
-                  </p>
-                ) : (
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    {myBuilds.map((b) => (
-                      <button
-                        key={b.id}
-                        type="button"
-                        className={styles.btnAdd}
-                        onClick={() => void addItemToBuild(b.id, pendingComponent)}
-                      >
-                        {b.name}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      className={styles.btnSecondary}
-                      onClick={() => setPendingComponent(null)}
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                )}
-              </div>
+              <BuildPicker
+                component={pendingComponent}
+                builds={myBuilds}
+                onPick={(buildId) => void addItemToBuild(buildId, pendingComponent)}
+                onCancel={() => setPendingComponent(null)}
+              />
             )}
 
-            <div className={styles.table}>
-              <div className={styles.tableHead}>
-                <span>Peça</span>
-                <span>Categoria</span>
-                <span style={{ textAlign: "right" }}>Consumo</span>
-                <span style={{ textAlign: "right" }}>Preço</span>
-                <span />
-              </div>
-
-              {loading && <div className={styles.empty}>Carregando peças...</div>}
-
-              {!loading && visible.length === 0 && (
-                <div className={styles.empty}>Nenhuma peça encontrada.</div>
-              )}
-
-              {visible.map((c) => (
-                <div key={c.id} className={styles.row}>
-                  <div>
-                    <span className={styles.itemName}>{c.name}</span>
-                    <span className={styles.itemBrand}>{c.manufacturer.name}</span>
-                  </div>
-                  <div>
-                    <span className={styles.chip}>{c.category}</span>
-                  </div>
-                  <div className={styles.cellWatts}>{c.powerWatts} W</div>
-                  <div className={styles.cellPrice}>
-                    {currency.format(c.priceCents / 100)}
-                  </div>
-                  <div className={styles.cellAction}>
-                    <button
-                      type="button"
-                      className={styles.btnAdd}
-                      onClick={() =>
-                        // Volta para esta mesma URL (com ?buildId=) depois do login
-                        requireLogin(
-                          window.location.pathname + window.location.search,
-                          () => void addToBuild(c)
-                        )
-                      }
-                    >
-                      Adicionar
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <ComponentsTable
+              components={filters.visible}
+              loading={loading}
+              emptyMessage="Nenhuma peça encontrada."
+              onAdd={(c) =>
+                // Volta para esta mesma URL (com ?buildId=) depois do login
+                requireLogin(
+                  window.location.pathname + window.location.search,
+                  () => void addToBuild(c)
+                )
+              }
+            />
 
             {!loading && (
-              <p className={styles.footer}>
-                Mostrando {visible.length} de {components.length} peças
-              </p>
+              <TableFooter>
+                Mostrando {filters.visible.length} de {components.length} peças
+              </TableFooter>
             )}
           </section>
         </div>
-      </main>
-    </div>
+      </PageContent>
+    </PageShell>
   );
 }

@@ -1,53 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { IBM_Plex_Sans, IBM_Plex_Sans_Condensed } from "next/font/google";
-import { clearToken, getToken, isAuthenticated } from "../login/auth_service";
-import headerStyles from "../catalog.module.css";
-import styles from "./[id]/build-detail.module.css";
-
-const plexSans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "600"] });
-const plexCondensed = IBM_Plex_Sans_Condensed({
-  subsets: ["latin"],
-  weight: ["500", "600"],
-});
-
-const API = process.env.NEXT_PUBLIC_API_URL;
-
-type BuildSummaryItem = { id: number; name: string; maxBudgetCents: number };
-
-const currency = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
+import { BuildListCard } from "@/components/builds/BuildListCard";
+import { AppHeader } from "@/components/layout/AppHeader";
+import { PageContent } from "@/components/layout/PageContent";
+import { PageShell } from "@/components/layout/PageShell";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { EmptyMessage } from "@/components/ui/EmptyMessage";
+import { PageHeading } from "@/components/ui/PageHeading";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { apiFetch } from "@/lib/api";
+import type { BuildSummaryItem } from "@/lib/types";
 
 export default function BuildsListPage() {
-  const router = useRouter();
+  const { authed, expireSession, logout } = useRequireAuth("/builds");
 
-  const [authed, setAuthed] = useState(false);
   const [builds, setBuilds] = useState<BuildSummaryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.replace("/login?next=/builds");
-      return;
-    }
-    setAuthed(true);
+    if (!authed) return;
 
     async function load() {
       try {
-        const response = await fetch(`${API}/builds/mine`, {
-          headers: { Authorization: `Bearer ${getToken() ?? ""}` },
-        });
+        const response = await apiFetch("/builds/mine", { auth: true });
 
-        // Token expirado ou inválido: limpa a sessão e volta ao login
         if (response.status === 401) {
-          clearToken();
-          router.replace("/login?next=/builds");
+          expireSession();
           return;
         }
         if (!response.ok) throw new Error();
@@ -61,85 +42,37 @@ export default function BuildsListPage() {
     }
 
     void load();
-  }, [router]);
-
-  function logout() {
-    clearToken();
-    router.push("/login");
-  }
+  }, [authed, expireSession]);
 
   return (
-    <div className={`${styles.page} ${plexSans.className}`}>
-      <header className={headerStyles.header}>
-        <div className={headerStyles.headerLeft}>
-          <Link href="/" className={`${headerStyles.brand} ${plexCondensed.className}`}>
-            Core Catalog
-          </Link>
-          <nav className={headerStyles.nav}>
-            <Link href="/" className={headerStyles.navLink}>
-              Catálogo
-            </Link>
-            <span className={`${headerStyles.navLink} ${headerStyles.navLinkStrong}`}>
-              Builds
-            </span>
-          </nav>
-        </div>
-        <div className={headerStyles.actions}>
-          <Link href="/" className={headerStyles.btnSecondary}>
-            Catálogo
-          </Link>
-          <button type="button" className={headerStyles.btnSecondary} onClick={logout}>
-            Sair
-          </button>
-          <Link href="/builds/new" className={headerStyles.btnPrimary}>
-            Nova build
-          </Link>
-        </div>
-      </header>
+    <PageShell>
+      <AppHeader nav={[{ label: "Catálogo", href: "/" }, { label: "Builds", strong: true }]}>
+        <Button href="/" variant="secondary">
+          Catálogo
+        </Button>
+        <Button variant="secondary" onClick={logout}>
+          Sair
+        </Button>
+        <Button href="/builds/new">Nova build</Button>
+      </AppHeader>
 
       {authed && (
-        <main className={styles.content}>
-          <div className={styles.titleRow}>
-            <div className={styles.titleBlock}>
-              <h1 className={`${styles.title} ${plexCondensed.className}`}>Builds</h1>
-              <p className={styles.subtitle}>Suas montagens e o orçamento de cada uma.</p>
-            </div>
-          </div>
+        <PageContent tight>
+          <PageHeading title="Builds" subtitle="Suas montagens e o orçamento de cada uma." />
 
-          {error && (
-            <div className={headerStyles.alert} role="alert">
-              {error}
-            </div>
-          )}
+          {error && <Alert>{error}</Alert>}
 
-          {loading && <p className={styles.empty}>Carregando builds...</p>}
+          {loading && <EmptyMessage>Carregando builds...</EmptyMessage>}
 
           {!loading && !error && builds.length === 0 && (
-            <p className={styles.empty}>
-              Você ainda não tem builds. Crie a primeira para começar.
-            </p>
+            <EmptyMessage>Você ainda não tem builds. Crie a primeira para começar.</EmptyMessage>
           )}
 
-          {builds.map((b) => (
-            <Link
-              key={b.id}
-              href={`/builds/${b.id}`}
-              className={styles.card}
-              style={{ textDecoration: "none", color: "inherit" }}
-            >
-              <span
-                className={`${styles.title} ${plexCondensed.className}`}
-                style={{ fontSize: 24, lineHeight: "32px" }}
-              >
-                {b.name}
-              </span>
-              <span className={styles.subtitle} style={{ margin: 0 }}>
-                Orçamento de {currency.format(b.maxBudgetCents / 100)}
-              </span>
-            </Link>
+          {builds.map((build) => (
+            <BuildListCard key={build.id} build={build} />
           ))}
-        </main>
+        </PageContent>
       )}
-    </div>
+    </PageShell>
   );
 }

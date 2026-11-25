@@ -1,58 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { IBM_Plex_Sans_Condensed } from "next/font/google";
-import { getToken } from "../../login/auth_service";
+import { AdminFormCard, AdminSplit } from "@/components/admin/AdminSplit";
+import { ProfileFields } from "@/components/profile/ProfileFields";
+import { Alert } from "@/components/ui/Alert";
+import { Avatar } from "@/components/ui/Avatar";
+import { FormField } from "@/components/ui/FormField";
+import { PageHeading } from "@/components/ui/PageHeading";
+import { Select } from "@/components/ui/Input";
+import { RowActions } from "@/components/ui/RowActions";
+import { Table, TableEmpty, TableHead, TableRow } from "@/components/ui/Table";
+import { apiFetch, readApiError } from "@/lib/api";
+import { formatDate } from "@/lib/format";
+import type { ProfileWithUser, User } from "@/lib/types";
 import styles from "./profiles.module.css";
 
-const plexCondensed = IBM_Plex_Sans_Condensed({
-  subsets: ["latin"],
-  weight: ["500", "600"],
-});
-
-const API = process.env.NEXT_PUBLIC_API_URL;
-
-type User = { id: number; name: string; email: string };
-
-type Profile = {
-  id: number;
-  userId: number;
-  fullName: string;
-  birthDate: string | null; // vem como ISO: "2003-05-10T00:00:00.000Z"
-  avatarUrl: string | null;
-  user: { name: string; email: string };
-};
-
-function authHeaders(): Record<string, string> {
-  return { Authorization: `Bearer ${getToken() ?? ""}` };
-}
-
-function formatDate(iso: string | null) {
-  if (!iso) return "—";
-  const [year, month, day] = iso.slice(0, 10).split("-");
-  return `${day}/${month}/${year}`;
-}
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
-}
-
-function Avatar({ name, url }: { name: string; url: string | null }) {
-  if (url) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={url} alt={name} className={styles.avatar} />;
-  }
-  return <div className={styles.avatarInitials}>{getInitials(name)}</div>;
-}
-
 export default function AdminProfilesPage() {
-  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [profiles, setProfiles] = useState<ProfileWithUser[]>([]);
   const [users, setUsers] = useState<User[]>([]);
 
   const [id, setId] = useState<number | null>(null);
@@ -76,8 +40,8 @@ export default function AdminProfilesPage() {
   async function load() {
     try {
       const [profilesRes, usersRes] = await Promise.all([
-        fetch(`${API}/profiles`, { headers: authHeaders() }),
-        fetch(`${API}/users`, { headers: authHeaders() }),
+        apiFetch("/profiles", { auth: true }),
+        apiFetch("/users", { auth: true }),
       ]);
       if (!profilesRes.ok || !usersRes.ok) throw new Error();
       setProfiles(await profilesRes.json());
@@ -99,7 +63,7 @@ export default function AdminProfilesPage() {
     setAvatarUrl("");
   }
 
-  function edit(profile: Profile) {
+  function edit(profile: ProfileWithUser) {
     setError("");
     setId(profile.id);
     setUserId(String(profile.userId));
@@ -122,19 +86,14 @@ export default function AdminProfilesPage() {
     const body = isEditing ? fields : { userId: Number(userId), ...fields };
 
     try {
-      const response = await fetch(
-        isEditing ? `${API}/profiles/${id}` : `${API}/profiles`,
-        {
-          method: isEditing ? "PATCH" : "POST",
-          headers: { "Content-Type": "application/json", ...authHeaders() },
-          body: JSON.stringify(body),
-        }
-      );
+      const response = await apiFetch(isEditing ? `/profiles/${id}` : "/profiles", {
+        method: isEditing ? "PATCH" : "POST",
+        auth: true,
+        body,
+      });
 
       if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        const msg = Array.isArray(data?.message) ? data.message.join(", ") : data?.message;
-        setError(String(msg ?? "Erro ao salvar o perfil."));
+        setError(await readApiError(response, "Erro ao salvar o perfil."));
         return;
       }
 
@@ -151,10 +110,7 @@ export default function AdminProfilesPage() {
     if (!confirm("Excluir este perfil?")) return;
     setError("");
     try {
-      const response = await fetch(`${API}/profiles/${profileId}`, {
-        method: "DELETE",
-        headers: authHeaders(),
-      });
+      const response = await apiFetch(`/profiles/${profileId}`, { method: "DELETE", auth: true });
       if (!response.ok) throw new Error();
       if (id === profileId) resetForm();
       await load();
@@ -165,112 +121,61 @@ export default function AdminProfilesPage() {
 
   return (
     <>
-      <h1 className={`${styles.title} ${plexCondensed.className}`}>Perfis</h1>
+      <PageHeading title="Perfis" />
 
-      {error && (
-        <div className={styles.alert} role="alert">
-          {error}
-        </div>
-      )}
+      {error && <Alert spaced>{error}</Alert>}
 
-      <div className={styles.columns}>
-        <form onSubmit={save} className={styles.formCard}>
-          <h2 className={`${styles.formTitle} ${plexCondensed.className}`}>
-            {isEditing ? "Editar perfil" : "Novo perfil"}
-          </h2>
+      <AdminSplit
+        form={
+          <AdminFormCard
+            title={isEditing ? "Editar perfil" : "Novo perfil"}
+            onSubmit={save}
+            saving={saving}
+            submitLabel={isEditing ? "Salvar" : "Cadastrar"}
+            savingLabel="Salvando..."
+            onCancel={isEditing ? resetForm : undefined}
+          >
+            <FormField label="Usuário" htmlFor="userId">
+              <Select
+                id="userId"
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
+                disabled={isEditing}
+                required
+              >
+                <option value="">Selecione um usuário</option>
+                {availableUsers.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name} ({user.email})
+                  </option>
+                ))}
+              </Select>
+            </FormField>
 
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="userId">
-              Usuário
-            </label>
-            <select
-              id="userId"
-              className={styles.input}
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              disabled={isEditing}
-              required
-            >
-              <option value="">Selecione um usuário</option>
-              {availableUsers.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name} ({user.email})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="fullName">
-              Nome completo
-            </label>
-            <input
-              id="fullName"
-              className={styles.input}
-              placeholder="Nome completo"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              minLength={2}
-              maxLength={120}
-              required
+            <ProfileFields
+              fullName={fullName}
+              onFullNameChange={setFullName}
+              birthDate={birthDate}
+              onBirthDateChange={setBirthDate}
+              avatarUrl={avatarUrl}
+              onAvatarUrlChange={setAvatarUrl}
             />
-          </div>
-
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="birthDate">
-              Data de nascimento
-            </label>
-            <input
-              id="birthDate"
-              type="date"
-              className={styles.input}
-              value={birthDate}
-              onChange={(e) => setBirthDate(e.target.value)}
-            />
-          </div>
-
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="avatarUrl">
-              URL do avatar
-            </label>
-            <input
-              id="avatarUrl"
-              type="url"
-              className={styles.input}
-              placeholder="https://..."
-              value={avatarUrl}
-              onChange={(e) => setAvatarUrl(e.target.value)}
-              maxLength={500}
-            />
-          </div>
-
-          <div className={styles.formActions}>
-            <button type="submit" className={styles.btnPrimary} disabled={saving}>
-              {saving ? "Salvando..." : isEditing ? "Salvar" : "Cadastrar"}
-            </button>
-            {isEditing && (
-              <button type="button" className={styles.btnSecondary} onClick={resetForm}>
-                Cancelar
-              </button>
-            )}
-          </div>
-        </form>
-
-        <div className={styles.table}>
-          <div className={styles.tableHead}>
+          </AdminFormCard>
+        }
+      >
+        <Table>
+          <TableHead className={styles.cols}>
             <span>Avatar</span>
             <span>Nome completo</span>
             <span>Usuário</span>
             <span>Nascimento</span>
             <span style={{ textAlign: "right" }}>Ações</span>
-          </div>
+          </TableHead>
 
-          {profiles.length === 0 && (
-            <div className={styles.empty}>Nenhum perfil cadastrado.</div>
-          )}
+          {profiles.length === 0 && <TableEmpty>Nenhum perfil cadastrado.</TableEmpty>}
 
           {profiles.map((profile) => (
-            <div key={profile.id} className={styles.row}>
+            <TableRow key={profile.id} className={`${styles.cols} ${styles.rowText}`}>
               <Avatar name={profile.fullName} url={profile.avatarUrl} />
               <span className={styles.fullName}>{profile.fullName}</span>
               <div>
@@ -278,22 +183,11 @@ export default function AdminProfilesPage() {
                 <span className={styles.userEmail}>{profile.user.email}</span>
               </div>
               <span>{formatDate(profile.birthDate)}</span>
-              <div className={styles.rowActions}>
-                <button type="button" className={styles.btnEdit} onClick={() => edit(profile)}>
-                  Editar
-                </button>
-                <button
-                  type="button"
-                  className={styles.btnDelete}
-                  onClick={() => void remove(profile.id)}
-                >
-                  Excluir
-                </button>
-              </div>
-            </div>
+              <RowActions onEdit={() => edit(profile)} onDelete={() => void remove(profile.id)} />
+            </TableRow>
           ))}
-        </div>
-      </div>
+        </Table>
+      </AdminSplit>
     </>
   );
 }
