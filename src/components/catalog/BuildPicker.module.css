@@ -1,0 +1,13 @@
+.question {
+  margin: 0 0 8px;
+}
+
+.empty {
+  margin: 0;
+}
+
+.options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}

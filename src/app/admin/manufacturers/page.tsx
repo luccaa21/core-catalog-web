@@ -1,22 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { IBM_Plex_Sans_Condensed } from "next/font/google";
-import { getToken } from "../../login/auth_service";
+import { AdminFormCard, AdminSplit } from "@/components/admin/AdminSplit";
+import { Alert } from "@/components/ui/Alert";
+import { FormField } from "@/components/ui/FormField";
+import { Input } from "@/components/ui/Input";
+import { PageHeading } from "@/components/ui/PageHeading";
+import { Table, TableEmpty, TableHead, TableRow } from "@/components/ui/Table";
+import { apiFetch, readApiError } from "@/lib/api";
+import type { Manufacturer } from "@/lib/types";
 import styles from "./manufacturers.module.css";
-
-const plexCondensed = IBM_Plex_Sans_Condensed({
-  subsets: ["latin"],
-  weight: ["500", "600"],
-});
-
-const API = process.env.NEXT_PUBLIC_API_URL;
-
-type Manufacturer = { id: number; name: string };
-
-function authHeaders(): Record<string, string> {
-  return { Authorization: `Bearer ${getToken() ?? ""}` };
-}
 
 export default function AdminManufacturersPage() {
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
@@ -26,7 +19,7 @@ export default function AdminManufacturersPage() {
 
   async function load() {
     try {
-      const response = await fetch(`${API}/manufacturers`, { headers: authHeaders() });
+      const response = await apiFetch("/manufacturers", { auth: true });
       if (!response.ok) throw new Error();
       setManufacturers(await response.json());
     } catch {
@@ -44,16 +37,14 @@ export default function AdminManufacturersPage() {
     setSaving(true);
 
     try {
-      const response = await fetch(`${API}/manufacturers`, {
+      const response = await apiFetch("/manufacturers", {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify({ name: name.trim() }),
+        auth: true,
+        body: { name: name.trim() },
       });
 
       if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        const msg = Array.isArray(data?.message) ? data.message.join(", ") : data?.message;
-        setError(String(msg ?? "Erro ao cadastrar o fabricante."));
+        setError(await readApiError(response, "Erro ao cadastrar o fabricante."));
         return;
       }
 
@@ -68,61 +59,52 @@ export default function AdminManufacturersPage() {
 
   return (
     <>
-      <div>
-        <h1 className={`${styles.title} ${plexCondensed.className}`}>Fabricantes</h1>
-        <p className={styles.subtitle}>As marcas disponíveis ao cadastrar uma peça.</p>
-      </div>
+      <PageHeading
+        title="Fabricantes"
+        subtitle="As marcas disponíveis ao cadastrar uma peça."
+      />
 
-      {error && (
-        <div className={styles.alert} role="alert">
-          {error}
-        </div>
-      )}
+      {error && <Alert spaced>{error}</Alert>}
 
-      <div className={styles.columns}>
-        <form onSubmit={save} className={styles.formCard}>
-          <h2 className={`${styles.formTitle} ${plexCondensed.className}`}>
-            Novo fabricante
-          </h2>
+      <AdminSplit
+        form={
+          <AdminFormCard
+            title="Novo fabricante"
+            onSubmit={save}
+            saving={saving}
+            submitLabel="Cadastrar fabricante"
+            savingLabel="Cadastrando..."
+            stretch
+          >
+            <FormField label="Nome" htmlFor="name">
+              <Input
+                id="name"
+                placeholder="Ex.: Intel"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                maxLength={60}
+                required
+              />
+            </FormField>
+          </AdminFormCard>
+        }
+      >
+        <Table>
+          <TableHead className={styles.cols}>
+            <span>Nome</span>
+            <span style={{ textAlign: "right" }}>ID</span>
+          </TableHead>
 
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="name">
-              Nome
-            </label>
-            <input
-              id="name"
-              className={styles.input}
-              placeholder="Ex.: Intel"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              maxLength={60}
-              required
-            />
-          </div>
-
-          <button type="submit" className={styles.btnPrimary} disabled={saving}>
-            {saving ? "Cadastrando..." : "Cadastrar fabricante"}
-          </button>
-        </form>
-
-        <div className={styles.table}>
-          <div className={styles.tableHead}>
-            <span className={styles.name}>Nome</span>
-            <span className={styles.id}>ID</span>
-          </div>
-
-          {manufacturers.length === 0 && (
-            <div className={styles.empty}>Nenhum fabricante cadastrado.</div>
-          )}
+          {manufacturers.length === 0 && <TableEmpty>Nenhum fabricante cadastrado.</TableEmpty>}
 
           {manufacturers.map((m) => (
-            <div key={m.id} className={styles.row}>
+            <TableRow key={m.id} className={`${styles.cols} ${styles.rowText}`}>
               <span className={styles.name}>{m.name}</span>
               <span className={styles.id}>{m.id}</span>
-            </div>
+            </TableRow>
           ))}
-        </div>
-      </div>
+        </Table>
+      </AdminSplit>
     </>
   );
 }

@@ -1,22 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { IBM_Plex_Sans_Condensed } from "next/font/google";
-import { getToken } from "../../login/auth_service";
+import { RowActions } from "@/components/ui/RowActions";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { FormField } from "@/components/ui/FormField";
+import { Input } from "@/components/ui/Input";
+import { PageHeading } from "@/components/ui/PageHeading";
+import { Table, TableEmpty, TableHead, TableRow } from "@/components/ui/Table";
+import { FormActions } from "@/components/ui/Form";
+import { apiFetch, readApiError } from "@/lib/api";
+import type { User } from "@/lib/types";
 import styles from "./users.module.css";
-
-const plexCondensed = IBM_Plex_Sans_Condensed({
-  subsets: ["latin"],
-  weight: ["500", "600"],
-});
-
-const API = process.env.NEXT_PUBLIC_API_URL;
-
-type User = { id: number; name: string; email: string };
-
-function authHeaders(): Record<string, string> {
-  return { Authorization: `Bearer ${getToken() ?? ""}` };
-}
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -31,7 +26,7 @@ export default function AdminUsersPage() {
 
   async function load() {
     try {
-      const response = await fetch(`${API}/users`, { headers: authHeaders() });
+      const response = await apiFetch("/users", { auth: true });
       if (!response.ok) throw new Error();
       setUsers(await response.json());
     } catch {
@@ -68,16 +63,14 @@ export default function AdminUsersPage() {
     if (!isEditing) body.password = password;
 
     try {
-      const response = await fetch(isEditing ? `${API}/users/${id}` : `${API}/users`, {
+      const response = await apiFetch(isEditing ? `/users/${id}` : "/users", {
         method: isEditing ? "PATCH" : "POST",
-        headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify(body),
+        auth: true,
+        body,
       });
 
       if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        const msg = Array.isArray(data?.message) ? data.message.join(", ") : data?.message;
-        setError(String(msg ?? "Erro ao salvar o usuário."));
+        setError(await readApiError(response, "Erro ao salvar o usuário."));
         return;
       }
 
@@ -94,10 +87,7 @@ export default function AdminUsersPage() {
     if (!confirm("Excluir este usuário?")) return;
     setError("");
     try {
-      const response = await fetch(`${API}/users/${userId}`, {
-        method: "DELETE",
-        headers: authHeaders(),
-      });
+      const response = await apiFetch(`/users/${userId}`, { method: "DELETE", auth: true });
       if (!response.ok) throw new Error();
       if (id === userId) resetForm();
       await load();
@@ -108,107 +98,77 @@ export default function AdminUsersPage() {
 
   return (
     <>
-      <h1 className={`${styles.title} ${plexCondensed.className}`}>Usuários</h1>
+      <PageHeading title="Usuários" />
 
-      {error && (
-        <div className={styles.alert} role="alert">
-          {error}
-        </div>
-      )}
+      {error && <Alert spaced>{error}</Alert>}
 
       <form onSubmit={save} className={styles.form}>
         <div className={`${styles.fields} ${isEditing ? styles.fieldsTwo : ""}`}>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="name">
-              Nome
-            </label>
-            <input
+          <FormField label="Nome" htmlFor="name">
+            <Input
               id="name"
-              className={styles.input}
               placeholder="Nome completo"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
             />
-          </div>
+          </FormField>
 
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="email">
-              E-mail
-            </label>
-            <input
+          <FormField label="E-mail" htmlFor="email">
+            <Input
               id="email"
               type="email"
-              className={styles.input}
               placeholder="nome@exemplo.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-          </div>
+          </FormField>
 
           {!isEditing && (
-            <div className={styles.field}>
-              <label className={styles.label} htmlFor="password">
-                Senha
-              </label>
-              <input
+            <FormField label="Senha" htmlFor="password" hint="Mínimo de 6 caracteres">
+              <Input
                 id="password"
                 type="password"
-                className={styles.input}
                 placeholder="••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 minLength={6}
                 required
               />
-              <p className={styles.hint}>Mínimo de 6 caracteres</p>
-            </div>
+            </FormField>
           )}
         </div>
 
-        <div className={styles.actions}>
-          <button type="submit" className={styles.btnPrimary} disabled={saving}>
+        <FormActions>
+          <Button type="submit" disabled={saving}>
             {saving ? "Salvando..." : isEditing ? "Salvar" : "Cadastrar"}
-          </button>
+          </Button>
           {isEditing && (
-            <button type="button" className={styles.btnSecondary} onClick={resetForm}>
+            <Button variant="secondary" onClick={resetForm}>
               Cancelar
-            </button>
+            </Button>
           )}
-        </div>
+        </FormActions>
       </form>
 
-      <div className={styles.table}>
-        <div className={styles.tableHead}>
+      <Table className={styles.table}>
+        <TableHead className={styles.cols}>
           <span>Nome</span>
           <span>E-mail</span>
           <span style={{ textAlign: "right" }}>Ações</span>
-        </div>
+        </TableHead>
 
-        {users.length === 0 && (
-          <div className={styles.empty}>Nenhum usuário cadastrado.</div>
-        )}
+        {users.length === 0 && <TableEmpty>Nenhum usuário cadastrado.</TableEmpty>}
 
         {users.map((user) => (
-          <div key={user.id} className={styles.row}>
-            <span className={styles.rowName}>{user.name}</span>
-            <span className={styles.rowEmail}>{user.email}</span>
-            <div className={styles.rowActions}>
-              <button type="button" className={styles.btnEdit} onClick={() => edit(user)}>
-                Editar
-              </button>
-              <button
-                type="button"
-                className={styles.btnDelete}
-                onClick={() => void remove(user.id)}
-              >
-                Excluir
-              </button>
-            </div>
-          </div>
+          <TableRow key={user.id} className={`${styles.cols} ${styles.rowText}`}>
+            <span className={styles.name}>{user.name}</span>
+            <span className={styles.email}>{user.email}</span>
+            <RowActions onEdit={() => edit(user)} onDelete={() => void remove(user.id)} />
+          </TableRow>
         ))}
-      </div>
+      </Table>
     </>
   );
 }

@@ -1,0 +1,14 @@
+.name {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  overflow-wrap: anywhere;
+}
+
+.brand {
+  display: block;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-text-secondary);
+}

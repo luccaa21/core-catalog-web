@@ -1,0 +1,35 @@
+/* Tokens de cor compartilhados por todas as telas */
+.page {
+  --color-bg-page: #e6eaeb;
+  --color-bg-surface: #f8f9f9;
+  --color-bg-raised: #ffffff;
+  --color-bg-sunken: #dce1e3;
+  --color-bg-brand-tint: #d5e8e2;
+  --color-border-subtle: #c3cbce;
+  --color-border-strong: #7c888e;
+  --color-text-primary: #1b2327;
+  --color-text-secondary: #566268;
+  --color-brand: #0e5c4a;
+  --color-brand-2: #2e7d6b;
+  --color-brand-3: #5e9e8e;
+  --color-brand-4: #93bfb3;
+  --color-ruler-1: #0e5c4a;
+  --color-ruler-2: #2e7d6b;
+  --color-ruler-3: #5e9e8e;
+  --color-ruler-4: #93bfb3;
+  --color-ruler-5: #b7d3cb;
+
+  min-height: 100vh;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+}
+
+.centered {
+  justify-content: center;
+}

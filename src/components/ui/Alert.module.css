@@ -1,0 +1,26 @@
+.alert {
+  padding: 12px 14px;
+  border-radius: 4px;
+  font-size: 15px;
+}
+
+.error {
+  border: 1px solid #e0a3a3;
+  background: #fbeaea;
+  color: #8a1f1f;
+}
+
+.notice {
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-brand-tint);
+  color: var(--color-text-primary);
+}
+
+.spaced {
+  margin-top: 24px;
+}
+
+.large {
+  font-size: 16px;
+  line-height: 22px;
+}

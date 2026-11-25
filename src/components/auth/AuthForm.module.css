@@ -1,0 +1,21 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.alternative {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  font-size: 16px;
+  line-height: 22px;
+  color: var(--color-text-secondary);
+}
+
+.link {
+  color: var(--color-brand);
+  font-weight: 600;
+  text-decoration: underline;
+}

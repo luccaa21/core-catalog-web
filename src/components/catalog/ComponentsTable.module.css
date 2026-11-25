@@ -1,0 +1,27 @@
+.cols {
+  --cols: minmax(0, 1fr) 130px 90px 130px;
+  --row-min-height: 64px;
+  --row-pad-y: 8px;
+}
+
+.withAction {
+  --cols: minmax(0, 1fr) 150px 100px 140px 120px;
+  --row-min-height: 72px;
+}
+
+.right {
+  text-align: right;
+  font-size: 14px;
+}
+
+.price {
+  text-align: right;
+  font-family: "IBM Plex Sans Condensed", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+}
+
+.action {
+  display: flex;
+  justify-content: flex-end;
+}

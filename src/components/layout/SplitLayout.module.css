@@ -1,0 +1,73 @@
+.layout {
+  display: flex;
+  box-sizing: border-box;
+}
+
+.form {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview {
+  width: 640px;
+  max-width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+}
+
+/* Telas de montar build e perfil */
+.builder {
+  align-items: flex-start;
+  gap: 96px;
+  padding: 64px 64px 96px;
+}
+
+.builder .form {
+  width: 440px;
+  gap: 24px;
+}
+
+.builder .preview {
+  gap: 24px;
+  padding: 32px;
+}
+
+/* Telas de login e cadastro */
+.auth {
+  align-items: center;
+  justify-content: center;
+  gap: 96px;
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 64px 48px;
+}
+
+.auth .form {
+  width: 520px;
+  gap: 28px;
+}
+
+.auth .preview {
+  flex-shrink: 1;
+  gap: 28px;
+  padding: 40px;
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    flex-direction: column;
+    gap: 48px;
+    padding: 48px 24px;
+  }
+
+  .layout .form,
+  .layout .preview {
+    width: 100%;
+  }
+}
