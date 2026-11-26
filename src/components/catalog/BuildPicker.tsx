@@ -11,7 +11,6 @@ type BuildPickerProps = {
   onCancel: () => void;
 };
 
-/** Aviso para escolher em qual build a peça será adicionada. */
 export function BuildPicker({ component, builds, onPick, onCancel }: BuildPickerProps) {
   return (
     <Alert variant="notice">

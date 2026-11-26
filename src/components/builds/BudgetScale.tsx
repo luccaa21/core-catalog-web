@@ -5,12 +5,7 @@ const PERCENTS = [0, 25, 50, 75, 100];
 
 type BudgetScaleProps = {
   budgetCents: number;
-  /**
-   * Valor que ocupa 100% da largura. Por padrão é o orçamento; passe um valor maior
-   * quando a build estourar, para a régua não sair da tela.
-   */
   scaleCents?: number;
-  /** Mostra a linha vermelha no limite do orçamento. */
   showLimit?: boolean;
 };
 
@@ -20,7 +15,6 @@ function labelTransform(percent: number) {
   return "translateX(-50%)";
 }
 
-/** Escala da régua: marcas a cada 25% do orçamento e, opcionalmente, o limite. */
 export function BudgetScale({ budgetCents, scaleCents = budgetCents, showLimit }: BudgetScaleProps) {
   const pct = (cents: number) => `${(cents / scaleCents) * 100}%`;
 

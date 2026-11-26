@@ -12,7 +12,6 @@ type CatalogSidebarProps = {
   onToggleManufacturer: (name: string) => void;
 };
 
-/** Filtros laterais do catálogo: categoria (uma) e fabricantes (várias). */
 export function CatalogSidebar({
   totalCount,
   categories,

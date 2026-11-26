@@ -9,7 +9,6 @@ type CatalogToolbarProps = {
   onSortChange: (value: SortKey) => void;
 };
 
-/** Busca por peça/fabricante e seletor de ordenação. */
 export function CatalogToolbar({
   search,
   onSearchChange,

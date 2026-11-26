@@ -10,7 +10,6 @@ type BuildListCardProps = {
   onDelete: () => void;
 };
 
-/** Cartão de uma build na lista "Minhas builds": abre a build ou permite excluí-la. */
 export function BuildListCard({ build, onDelete }: BuildListCardProps) {
   return (
     <div className={styles.card}>

@@ -1,6 +1,5 @@
 import styles from "./PartCell.module.css";
 
-/** Célula "Peça": nome em destaque e fabricante embaixo. */
 export function PartCell({ name, brand }: { name: string; brand: string }) {
   return (
     <div>

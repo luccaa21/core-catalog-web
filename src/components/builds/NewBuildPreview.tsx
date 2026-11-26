@@ -9,7 +9,6 @@ type NewBuildPreviewProps = {
   budgetCents: number;
 };
 
-/** Prévia da régua enquanto a build está sendo criada (ainda sem peças). */
 export function NewBuildPreview({ name, budgetCents }: NewBuildPreviewProps) {
   return (
     <>

@@ -6,7 +6,6 @@ type RowActionsProps = {
   onDelete: () => void;
 };
 
-/** Botões "Editar" e "Excluir" no fim de uma linha de tabela. */
 export function RowActions({ onEdit, onDelete }: RowActionsProps) {
   return (
     <div className={styles.actions}>

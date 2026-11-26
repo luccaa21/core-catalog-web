@@ -2,7 +2,6 @@ import styles from "./BudgetTrack.module.css";
 
 export type TrackSegment = { key: string | number; width: string; color: string };
 
-/** Barra da régua; cada segmento é um pedaço do gasto, colorido por categoria. */
 export function BudgetTrack({ segments = [] }: { segments?: TrackSegment[] }) {
   return (
     <div className={styles.track} aria-hidden="true">

@@ -35,7 +35,6 @@ export default function CatalogPage() {
   const filters = useCatalogFilters(components);
 
   useEffect(() => {
-    // Lê o token só no navegador, para evitar diferença entre servidor e cliente
     setAuthed(isAuthenticated());
 
     const idFromUrl = new URLSearchParams(window.location.search).get("buildId");
@@ -53,7 +52,6 @@ export default function CatalogPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Ações que exigem login: se não estiver logado, manda para /login e volta depois
   function requireLogin(destination: string, action?: () => void) {
     if (!isAuthenticated()) {
       router.push(`/login?next=${encodeURIComponent(destination)}`);
@@ -62,8 +60,6 @@ export default function CatalogPage() {
     action?.();
   }
 
-  // Clique em "Adicionar": se já houver build escolhida (vinda da URL), adiciona direto.
-  // Senão, carrega as builds do usuário e mostra a lista para escolher.
   async function addToBuild(component: Component) {
     setError("");
     setMessage("");
@@ -183,7 +179,6 @@ export default function CatalogPage() {
               loading={loading}
               emptyMessage="Nenhuma peça encontrada."
               onAdd={(c) =>
-                // Volta para esta mesma URL (com ?buildId=) depois do login
                 requireLogin(
                   window.location.pathname + window.location.search,
                   () => void addToBuild(c)

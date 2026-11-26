@@ -15,7 +15,6 @@ type ButtonProps = CommonProps &
 
 type LinkProps = CommonProps & { href: string };
 
-/** Botão padrão. Com `href` vira um link (next/link) com a mesma aparência. */
 export function Button(props: ButtonProps | LinkProps) {
   const { variant = "primary", size = "md", fullWidth, className, children } = props;
   const classes = [

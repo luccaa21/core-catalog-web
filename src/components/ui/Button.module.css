@@ -16,7 +16,6 @@
   cursor: not-allowed;
 }
 
-/* Tamanhos */
 .md {
   height: 40px;
   padding: 0 16px;
@@ -36,7 +35,6 @@
   width: 100%;
 }
 
-/* Variantes */
 .primary {
   border: 0;
   background: var(--color-brand);

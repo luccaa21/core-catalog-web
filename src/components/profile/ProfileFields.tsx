@@ -9,11 +9,9 @@ type ProfileFieldsProps = {
   avatarUrl: string;
   onAvatarUrlChange: (value: string) => void;
   disabled?: boolean;
-  /** Texto de ajuda do campo de avatar. */
   avatarHint?: string;
 };
 
-/** Campos de um perfil: nome completo, data de nascimento e URL do avatar. */
 export function ProfileFields({
   fullName,
   onFullNameChange,

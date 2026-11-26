@@ -11,7 +11,6 @@ type ProfilePreviewProps = {
   loading: boolean;
 };
 
-/** Prévia do perfil ao lado do formulário, atualizada conforme a pessoa digita. */
 export function ProfilePreview({
   fullName,
   avatarUrl,

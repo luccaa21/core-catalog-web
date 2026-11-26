@@ -58,7 +58,6 @@ export default function AdminUsersPage() {
     setError("");
     setSaving(true);
 
-    // Na edição a senha não é alterada aqui; no cadastro, vai em texto puro (o backend gera o hash)
     const body: Record<string, string> = { name, email };
     if (!isEditing) body.password = password;
 

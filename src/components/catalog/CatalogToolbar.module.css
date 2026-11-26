@@ -9,7 +9,6 @@
   width: 360px;
 }
 
-/* A busca mantém o placeholder padrão do navegador, como no protótipo */
 .search input::placeholder {
   color: #757575;
 }

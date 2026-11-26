@@ -9,14 +9,11 @@ type AdminFormCardProps = {
   saving: boolean;
   submitLabel: string;
   savingLabel: string;
-  /** Mostra o botão "Cancelar" (ex.: durante uma edição). */
   onCancel?: () => void;
-  /** Botão principal ocupa toda a largura do cartão. */
   stretch?: boolean;
   children: ReactNode;
 };
 
-/** Cartão de formulário das telas do admin (coluna da esquerda). */
 export function AdminFormCard({
   title,
   onSubmit,
@@ -45,7 +42,6 @@ export function AdminFormCard({
   );
 }
 
-/** Layout do admin: formulário à esquerda e lista à direita; empilha em telas estreitas. */
 export function AdminSplit({ form, children }: { form: ReactNode; children: ReactNode }) {
   return (
     <div className={styles.columns}>

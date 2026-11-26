@@ -2,9 +2,7 @@ import type { ReactNode } from "react";
 import styles from "./Alert.module.css";
 
 type AlertProps = {
-  /** "error" (vermelho, role=alert) ou "notice" (informativo). */
   variant?: "error" | "notice";
-  /** Margem superior, usada nas telas do admin. */
   spaced?: boolean;
   large?: boolean;
   children: ReactNode;

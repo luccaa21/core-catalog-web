@@ -44,7 +44,6 @@ export default function RegisterPage() {
         return;
       }
 
-      // O register já devolve o token, então o usuário entra direto
       const data = await response.json();
       saveToken(data.access_token);
       router.replace(getNextPath());

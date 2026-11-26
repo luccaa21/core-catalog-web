@@ -13,13 +13,10 @@ type AuthFormProps = {
   submitLabel: string;
   loadingLabel: string;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-  /** Texto e link para a outra tela (ex.: "Ainda não tem conta?" + "Criar conta"). */
   alternative: { text: string; linkLabel: string; href: string };
-  /** Campos do formulário. */
   children: ReactNode;
 };
 
-/** Coluna do formulário das telas de login e cadastro. */
 export function AuthForm({
   title,
   subtitle,
