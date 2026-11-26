@@ -12,7 +12,6 @@ const NAV = [
   { href: "/admin/manufacturers", label: "Fabricantes" },
 ];
 
-/** Menu lateral do admin, com o item da página atual destacado. */
 export function AdminSidebar() {
   const pathname = usePathname();
 

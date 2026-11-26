@@ -5,7 +5,6 @@ import type { InputHTMLAttributes } from "react";
 import { Input } from "./Input";
 import styles from "./PasswordInput.module.css";
 
-/** Campo de senha com botão para mostrar/ocultar. */
 export function PasswordInput(
   props: Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "size" | "style">
 ) {

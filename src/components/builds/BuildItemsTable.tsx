@@ -5,7 +5,6 @@ import { money } from "@/lib/format";
 import type { BuildSummary } from "@/lib/types";
 import styles from "./BuildItemsTable.module.css";
 
-/** Tabela das peças de uma build, com quantidade, consumo, valores e linha de total. */
 export function BuildItemsTable({ summary }: { summary: BuildSummary }) {
   const { items } = summary;
   const totalQty = items.reduce((sum, item) => sum + item.quantity, 0);

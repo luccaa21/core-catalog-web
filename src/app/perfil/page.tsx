@@ -45,7 +45,6 @@ export default function ProfilePage() {
         const response = await apiFetch("/profiles/me", { auth: true });
         if (!response.ok) throw new Error();
 
-        // Sem perfil, o backend responde null (corpo vazio)
         const data = await readJsonOrNull<Profile>(response);
         setProfile(data);
         fillForm(data);
@@ -64,7 +63,6 @@ export default function ProfilePage() {
     setError("");
     setSuccess("");
 
-    // Campos vazios não são enviados (undefined some no JSON)
     const fields = {
       fullName: fullName.trim(),
       birthDate: birthDate || undefined,
@@ -88,7 +86,6 @@ export default function ProfilePage() {
       setProfile(saved);
       fillForm(saved);
 
-      // Se a pessoa veio de outra tela (ex.: Nova build), volta para ela
       const next = getNextPath("");
       if (next) {
         router.push(next);

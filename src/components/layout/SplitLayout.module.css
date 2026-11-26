@@ -20,7 +20,6 @@
   border-radius: 8px;
 }
 
-/* Telas de montar build e perfil */
 .builder {
   align-items: flex-start;
   gap: 96px;
@@ -37,7 +36,6 @@
   padding: 32px;
 }
 
-/* Telas de login e cadastro */
 .auth {
   align-items: center;
   justify-content: center;

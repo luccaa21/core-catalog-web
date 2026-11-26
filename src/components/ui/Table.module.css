@@ -5,7 +5,6 @@
   overflow: hidden;
 }
 
-/* As colunas vêm da variável --cols, definida por quem usa a tabela */
 .head,
 .row {
   display: grid;

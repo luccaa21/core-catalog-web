@@ -23,7 +23,7 @@ export default function NewBuildPage() {
   const { authed, logout } = useRequireAuth("/builds/new");
 
   const [name, setName] = useState("");
-  const [budgetCents, setBudgetCents] = useState(800000); // R$ 8.000,00
+  const [budgetCents, setBudgetCents] = useState(800000);
   const [myProfile, setMyProfile] = useState<Pick<Profile, "id" | "fullName"> | null>(null);
   const [profileChecked, setProfileChecked] = useState(false);
   const [error, setError] = useState("");
@@ -32,11 +32,9 @@ export default function NewBuildPage() {
   useEffect(() => {
     if (!authed) return;
 
-    // Busca só o perfil da conta logada
     apiFetch("/profiles/me", { auth: true })
       .then(async (r) => {
         if (!r.ok) throw new Error();
-        // Sem perfil, o backend responde corpo vazio (null)
         setMyProfile(await readJsonOrNull(r));
       })
       .catch(() => setError("Não foi possível carregar seu perfil."))
@@ -58,7 +56,6 @@ export default function NewBuildPage() {
 
     setSaving(true);
     try {
-      // O perfil não é enviado: o backend usa o dono do token
       const response = await apiFetch("/builds", {
         method: "POST",
         auth: true,

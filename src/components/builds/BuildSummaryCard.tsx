@@ -6,10 +6,7 @@ import { BudgetScale } from "./BudgetScale";
 import { BudgetTrack } from "./BudgetTrack";
 import styles from "./BuildSummaryCard.module.css";
 
-/** Cartão com o gasto, o que ainda cabe no orçamento, a régua e a legenda por categoria. */
 export function BuildSummaryCard({ summary }: { summary: BuildSummary }) {
-  // A escala vai até o maior valor entre o orçamento e o total,
-  // para a régua não sair da tela quando a build estoura
   const scale = Math.max(summary.maxBudgetCents, summary.totalCents, 1);
   const remaining = summary.maxBudgetCents - summary.totalCents;
 

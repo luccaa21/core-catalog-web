@@ -3,7 +3,6 @@ import styles from "./BuildPreview.module.css";
 
 export type PreviewItem = { category: string; name: string; price: string };
 
-// Dados fixos só para a prévia visual da tela (protótipo)
 const SEGMENTS = [
   { width: "23.5%", color: "var(--color-brand)" },
   { width: "53.7%", color: "var(--color-brand-2)" },
@@ -11,7 +10,6 @@ const SEGMENTS = [
   { width: "9.1%", color: "var(--color-brand-4)" },
 ];
 
-/** Prévia ilustrativa de uma build, exibida ao lado dos formulários de login e cadastro. */
 export function BuildPreview({ items }: { items: PreviewItem[] }) {
   return (
     <>

@@ -30,7 +30,6 @@ export default function AdminProfilesPage() {
 
   const isEditing = id !== null;
 
-  // Um usuário só pode ter um perfil. Ao editar, o usuário do próprio perfil continua na lista.
   const availableUsers = users.filter(
     (user) =>
       !profiles.some((p) => p.userId === user.id) ||
@@ -77,7 +76,6 @@ export default function AdminProfilesPage() {
     setError("");
     setSaving(true);
 
-    // Campos vazios não são enviados (undefined some no JSON)
     const fields = {
       fullName: fullName.trim(),
       birthDate: birthDate || undefined,

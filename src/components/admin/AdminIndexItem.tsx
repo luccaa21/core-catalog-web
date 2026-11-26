@@ -5,14 +5,12 @@ import styles from "./AdminIndexItem.module.css";
 type AdminIndexItemProps = {
   title: string;
   description: string;
-  /** Quantidade cadastrada; null enquanto carrega (mostra "—"). */
   count: number | null;
   countLabel: string;
   href: string;
   linkLabel: string;
 };
 
-/** Linha do painel do admin: resumo de um cadastro, contagem e atalho para gerenciá-lo. */
 export function AdminIndexItem({
   title,
   description,

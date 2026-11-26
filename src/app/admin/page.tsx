@@ -19,9 +19,7 @@ export default function AdminPainelPage() {
         setUsersCount(users.length);
         setProfilesCount(profiles.length);
       })
-      .catch(() => {
-        // Sem contagem: os números ficam como "—"
-      });
+      .catch(() => {});
   }, []);
 
   return (

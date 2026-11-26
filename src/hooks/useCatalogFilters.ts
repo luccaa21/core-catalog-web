@@ -12,7 +12,6 @@ export const SORT_LABELS: Record<SortKey, string> = {
   name: "Nome",
 };
 
-// Ordem das categorias como no protótipo; categorias extras vão para o fim
 const CATEGORY_ORDER = ["CPU", "GPU", "Placa-mãe", "RAM", "Armazenamento", "Fonte"];
 
 function countBy<T>(items: T[], key: (item: T) => string) {
@@ -24,14 +23,12 @@ function countBy<T>(items: T[], key: (item: T) => string) {
   return counts;
 }
 
-/** Filtros (categoria, fabricantes, busca) e ordenação do catálogo de peças. */
 export function useCatalogFilters(components: Component[]) {
   const [category, setCategory] = useState("");
   const [selectedManufacturers, setSelectedManufacturers] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortKey>("price-asc");
 
-  // Categorias com contagem, na ordem do protótipo
   const categories = useMemo(() => {
     const counts = countBy(components, (c) => c.category);
     return [...counts.keys()]
@@ -43,7 +40,6 @@ export function useCatalogFilters(components: Component[]) {
       .map((name) => ({ name, count: counts.get(name) ?? 0 }));
   }, [components]);
 
-  // Fabricantes com contagem, em ordem alfabética
   const manufacturers = useMemo(() => {
     const counts = countBy(components, (c) => c.manufacturer.name);
     return [...counts.keys()]

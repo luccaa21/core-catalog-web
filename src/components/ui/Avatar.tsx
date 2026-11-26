@@ -7,7 +7,6 @@ type AvatarProps = {
   size?: "sm" | "lg";
 };
 
-/** Foto do avatar, ou as iniciais do nome quando não há URL. */
 export function Avatar({ name, url, size = "sm" }: AvatarProps) {
   if (url) {
     // eslint-disable-next-line @next/next/no-img-element

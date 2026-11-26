@@ -11,14 +11,11 @@ type ComponentsTableProps = {
   components: Component[];
   loading?: boolean;
   emptyMessage: string;
-  /** Quando informado, mostra o botão "Adicionar" em cada linha. */
   onAdd?: (component: Component) => void;
-  /** Quando informados, mostram os botões "Editar" e "Excluir" em cada linha. */
   onEdit?: (component: Component) => void;
   onDelete?: (component: Component) => void;
 };
 
-/** Tabela de peças (nome, categoria, consumo e preço), usada no catálogo e no admin. */
 export function ComponentsTable({
   components,
   loading = false,

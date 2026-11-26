@@ -16,7 +16,7 @@ export type Profile = {
   id: number;
   userId: number;
   fullName: string;
-  birthDate: string | null; // vem como ISO: "2003-05-10T00:00:00.000Z"
+  birthDate: string | null;
   avatarUrl: string | null;
 };
 
