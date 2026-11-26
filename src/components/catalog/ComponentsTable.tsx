@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { PartCell } from "@/components/ui/PartCell";
+import { RowActions } from "@/components/ui/RowActions";
 import { Table, TableEmpty, TableHead, TableRow } from "@/components/ui/Table";
 import { money } from "@/lib/format";
 import type { Component } from "@/lib/types";
@@ -12,6 +13,9 @@ type ComponentsTableProps = {
   emptyMessage: string;
   /** Quando informado, mostra o botão "Adicionar" em cada linha. */
   onAdd?: (component: Component) => void;
+  /** Quando informados, mostram os botões "Editar" e "Excluir" em cada linha. */
+  onEdit?: (component: Component) => void;
+  onDelete?: (component: Component) => void;
 };
 
 /** Tabela de peças (nome, categoria, consumo e preço), usada no catálogo e no admin. */
@@ -20,8 +24,11 @@ export function ComponentsTable({
   loading = false,
   emptyMessage,
   onAdd,
+  onEdit,
+  onDelete,
 }: ComponentsTableProps) {
-  const cols = onAdd ? styles.withAction : styles.cols;
+  const hasActions = !!onEdit && !!onDelete;
+  const cols = onAdd ? styles.withAction : hasActions ? styles.withActions : styles.cols;
 
   return (
     <Table>
@@ -31,6 +38,7 @@ export function ComponentsTable({
         <span style={{ textAlign: "right" }}>Consumo</span>
         <span style={{ textAlign: "right" }}>Preço</span>
         {onAdd && <span />}
+        {hasActions && <span style={{ textAlign: "right" }}>Ações</span>}
       </TableHead>
 
       {loading && <TableEmpty>Carregando peças...</TableEmpty>}
@@ -51,6 +59,7 @@ export function ComponentsTable({
               </Button>
             </div>
           )}
+          {hasActions && <RowActions onEdit={() => onEdit(c)} onDelete={() => onDelete(c)} />}
         </TableRow>
       ))}
     </Table>

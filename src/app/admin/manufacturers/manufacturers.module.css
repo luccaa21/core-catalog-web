@@ -1,5 +1,5 @@
 .cols {
-  --cols: minmax(0, 1fr) 80px;
+  --cols: minmax(0, 1fr) 80px 168px;
   --row-min-height: 48px;
 }
 

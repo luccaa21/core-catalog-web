@@ -4,6 +4,12 @@
   --row-pad-y: 8px;
 }
 
+.withActions {
+  --cols: minmax(0, 1fr) 130px 90px 130px 168px;
+  --row-min-height: 64px;
+  --row-pad-y: 8px;
+}
+
 .withAction {
   --cols: minmax(0, 1fr) 150px 100px 140px 120px;
   --row-min-height: 72px;
