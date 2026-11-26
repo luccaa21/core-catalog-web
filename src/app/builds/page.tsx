@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { EmptyMessage } from "@/components/ui/EmptyMessage";
 import { PageHeading } from "@/components/ui/PageHeading";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, readApiError } from "@/lib/api";
 import type { BuildSummaryItem } from "@/lib/types";
 
 export default function BuildsListPage() {
@@ -44,6 +44,28 @@ export default function BuildsListPage() {
     void load();
   }, [authed, expireSession]);
 
+  async function removeBuild(build: BuildSummaryItem) {
+    if (!confirm(`Excluir a build "${build.name}"? Essa ação não pode ser desfeita.`)) return;
+    setError("");
+
+    try {
+      const response = await apiFetch(`/builds/${build.id}`, { method: "DELETE", auth: true });
+
+      if (response.status === 401) {
+        expireSession();
+        return;
+      }
+      if (!response.ok) {
+        setError(await readApiError(response, "Não foi possível excluir a build."));
+        return;
+      }
+
+      setBuilds((current) => current.filter((b) => b.id !== build.id));
+    } catch {
+      setError("Erro de conexão. Verifique se a API está rodando.");
+    }
+  }
+
   return (
     <PageShell>
       <AppHeader nav={[{ label: "Catálogo", href: "/" }, { label: "Builds", strong: true }]}>
@@ -69,7 +91,7 @@ export default function BuildsListPage() {
           )}
 
           {builds.map((build) => (
-            <BuildListCard key={build.id} build={build} />
+            <BuildListCard key={build.id} build={build} onDelete={() => void removeBuild(build)} />
           ))}
         </PageContent>
       )}

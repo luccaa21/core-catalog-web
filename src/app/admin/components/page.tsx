@@ -16,6 +16,7 @@ export default function AdminComponentsPage() {
   const [components, setComponents] = useState<Component[]>([]);
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
 
+  const [id, setId] = useState<number | null>(null);
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [manufacturerId, setManufacturerId] = useState("");
@@ -24,6 +25,8 @@ export default function AdminComponentsPage() {
 
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const isEditing = id !== null;
 
   async function load() {
     try {
@@ -44,11 +47,22 @@ export default function AdminComponentsPage() {
   }, []);
 
   function resetForm() {
+    setId(null);
     setName("");
     setCategory("");
     setManufacturerId("");
     setPriceCents(0);
     setWatts("");
+  }
+
+  function edit(component: Component) {
+    setError("");
+    setId(component.id);
+    setName(component.name);
+    setCategory(component.category);
+    setManufacturerId(String(component.manufacturerId));
+    setPriceCents(component.priceCents);
+    setWatts(String(component.powerWatts));
   }
 
   async function save(event: React.FormEvent<HTMLFormElement>) {
@@ -62,8 +76,8 @@ export default function AdminComponentsPage() {
 
     setSaving(true);
     try {
-      const response = await apiFetch("/components", {
-        method: "POST",
+      const response = await apiFetch(isEditing ? `/components/${id}` : "/components", {
+        method: isEditing ? "PATCH" : "POST",
         auth: true,
         body: {
           name: name.trim(),
@@ -75,16 +89,40 @@ export default function AdminComponentsPage() {
       });
 
       if (!response.ok) {
-        setError(await readApiError(response, "Erro ao cadastrar a peça."));
+        setError(
+          await readApiError(
+            response,
+            isEditing ? "Erro ao salvar a peça." : "Erro ao cadastrar a peça."
+          )
+        );
         return;
       }
 
       resetForm();
       await load();
     } catch {
-      setError("Erro de conexão ao cadastrar.");
+      setError("Erro de conexão ao salvar.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function remove(component: Component) {
+    if (!confirm(`Excluir a peça "${component.name}"?`)) return;
+    setError("");
+    try {
+      const response = await apiFetch(`/components/${component.id}`, {
+        method: "DELETE",
+        auth: true,
+      });
+      if (!response.ok) {
+        setError(await readApiError(response, "Não foi possível excluir a peça."));
+        return;
+      }
+      if (id === component.id) resetForm();
+      await load();
+    } catch {
+      setError("Erro de conexão ao excluir.");
     }
   }
 
@@ -100,12 +138,13 @@ export default function AdminComponentsPage() {
       <AdminSplit
         form={
           <AdminFormCard
-            title="Nova peça"
+            title={isEditing ? "Editar peça" : "Nova peça"}
             onSubmit={save}
             saving={saving}
-            submitLabel="Cadastrar peça"
-            savingLabel="Cadastrando..."
-            stretch
+            submitLabel={isEditing ? "Salvar" : "Cadastrar peça"}
+            savingLabel={isEditing ? "Salvando..." : "Cadastrando..."}
+            onCancel={isEditing ? resetForm : undefined}
+            stretch={!isEditing}
           >
             <FormField label="Nome" htmlFor="name">
               <Input
@@ -163,7 +202,12 @@ export default function AdminComponentsPage() {
           </AdminFormCard>
         }
       >
-        <ComponentsTable components={components} emptyMessage="Nenhuma peça cadastrada." />
+        <ComponentsTable
+          components={components}
+          emptyMessage="Nenhuma peça cadastrada."
+          onEdit={edit}
+          onDelete={(c) => void remove(c)}
+        />
 
         {components.length > 0 && <TableFooter>Mostrando {components.length} peças</TableFooter>}
       </AdminSplit>

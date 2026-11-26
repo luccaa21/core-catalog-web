@@ -6,6 +6,7 @@ export type Component = {
   category: string;
   priceCents: number;
   powerWatts: number;
+  manufacturerId: number;
   manufacturer: { name: string };
 };
 
